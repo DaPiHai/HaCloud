@@ -83,7 +83,7 @@
   - 打开 Web 控制台（浏览器访问 http://localhost:8080/）
   - 退出（真正结束进程）
 
-![系统托盘菜单示例](./md_img/1.png)
+![系统托盘菜单示例](https://github.com/DaPiHai/HaCloud/blob/main/md_img/1.png)
 
 ## 日志
 - 应用运行日志显示在 GUI 窗口的日志区域（自动滚动到底部）。
@@ -91,7 +91,7 @@
 - 发布版 HaCloud.exe 使用 Windows GUI 子系统构建，不会打开控制台也不会向控制台输出。
 - 若需要在控制台查看运行日志，使用调试版 HaCloud_dbg.exe 启动。
 
-![系统托盘菜单示例](./md_img/2.png)
+![系统托盘菜单示例](https://github.com/DaPiHai/HaCloud/blob/main/md_img/2.png)
 
 ## 本地开发与构建
 前置要求：Go 1.21+
@@ -120,7 +120,7 @@ rsrc -arch 386   -ico logo.ico -o rsrc_windows_386.syso
 ```
 然后重新构建发布版。
 
-![系统托盘菜单示例](./md_img/3.png)
+![系统托盘菜单示例](https://github.com/DaPiHai/HaCloud/blob/main/md_img/3.png)
 
 ## 访问与部署要点
 - 本机访问：http://localhost:8080/
@@ -128,8 +128,8 @@ rsrc -arch 386   -ico logo.ico -o rsrc_windows_386.syso
 - 公网访问：建议配置域名 + HTTPS（手动证书或 AutoTLS），并在路由器/云主机放通 80/443。
 - 首次登录使用 admin/admin123，登录后请立即修改管理员密码。
 
-![系统托盘菜单示例](./md_img/4.png)
-![系统托盘菜单示例](./md_img/5.png)
+![系统托盘菜单示例](https://github.com/DaPiHai/HaCloud/blob/main/md_img/4.png)
+![系统托盘菜单示例](https://github.com/DaPiHai/HaCloud/blob/main/md_img/5.png)
 
 ## 常见问题（FAQ）
 - 8080 端口被占用？修改 config.json 中的 server.port 或释放占用端口。
