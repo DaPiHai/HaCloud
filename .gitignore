@@ -1,0 +1,51 @@
+# HaCloud Git ignore rules
+
+# 1) 不提交文档目录
+/doc/
+
+# 2) 运行时数据由程序自动生成，不提交
+/data/
+
+# 3) 常见文档格式（全局忽略）
+*.pdf
+*.doc
+*.docx
+*.xls
+*.xlsx
+*.ppt
+*.pptx
+*.rtf
+*.odt
+*.ods
+*.odp
+
+# 4) 常见音频格式（全局忽略）
+*.mp3
+*.wav
+*.flac
+*.aac
+*.ogg
+*.m4a
+*.wma
+
+# 5) 常见视频格式（全局忽略）
+*.mp4
+*.mkv
+*.avi
+*.mov
+*.wmv
+*.flv
+*.webm
+*.mpeg
+*.mpg
+*.m4v
+
+# 6) 可执行程序（Windows）
+*.exe
+*.msi
+
+# 7) https 证书
+certs/
+
+# 8）代码备份
+*.bak

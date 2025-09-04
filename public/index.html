@@ -1,0 +1,2171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HaCloud</title>
+  <!-- Uppy CDN -->
+  <link href="https://releases.transloadit.com/uppy/v3.27.3/uppy.min.css" rel="stylesheet">
+  <script src="https://releases.transloadit.com/uppy/v3.27.3/uppy.min.js"></script>
+  <script src="https://releases.transloadit.com/uppy/locales/v3.3.1/zh_CN.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <style>table.hide-ops th:last-child,table.hide-ops td:last-child{display:none;}td.name-cell{display:flex;align-items:center;gap:8px;}td.name-cell .bi{font-size:1.1em;color:#6c757d;}</style>
+  
+   
+  
+  <style>
+     body { font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
+     .container { max-width: 100%; margin: 0; }
+     h1 { color: #333; text-align: center; }
+     .toolbar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+     .toolbar-row:last-child { margin-bottom: 0; }
+     .path-row { align-items: center; }
+     #breadcrumb { flex: 1; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-height: 32px; }
+     #breadcrumb a { color: #0d6efd; text-decoration: none; }
+     #breadcrumb a:hover { text-decoration: underline; }
+     #breadcrumb .sep { color: #adb5bd; }
+     .path-row input { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+     button { padding: 8px 14px; border: none; border-radius: 4px; cursor: pointer; }
+     button.primary { background: #007bff; color: white; }
+     button.primary:hover { background: #0056b3; }
+     button.secondary { background: #6c757d; color: white; }
+     button.secondary:hover { background: #545b62; }
+     button:disabled { background: #ccc; cursor: not-allowed; }
+     .file-upload { position: relative; overflow: hidden; display: inline-block; }
+     .file-upload input[type=file] { position: absolute; left: -9999px; }
+     table { width: 100%; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-collapse: collapse; }
+     th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+     th { background: #f8f9fa; font-weight: 600; }
+     tr:hover { background: #f8f9fa; }
+     .name { color: #007bff; cursor: pointer; text-decoration: underline; }
+     .muted { color: #6c757d; }
+     #hint { margin-top: 10px; color: #6c757d; font-size: 14px; }
+     #hint progress { width: 320px; height: 12px; }
+     /* 布局：侧边栏 + 内容区 */
+      .app{display:flex; gap:16px; align-items:flex-start;}
+      .sidebar{width:220px; background:#222d32; color:#cfd8dc; box-shadow: inset -1px 0 0 rgba(0,0,0,0.1); padding:12px; box-sizing:border-box; height:100vh; position:fixed; top:0; left:0; overflow:auto; border-radius:0;}
+      .nav-section + .nav-section{border-top:1px solid #f1f3f5; padding-top:12px;}
+      .nav-btn{display:flex; align-items:center; gap:8px; width:100%; justify-content:flex-start; margin-bottom:8px;}
+      .nav-btn .bi{font-size:1.1em;}
+       .nav-btn{background:rgba(255,255,255,.06); color:#e9ecef; border:1px solid rgba(255,255,255,.08);} 
+       .nav-btn.primary{background:#3c8dbc; color:#fff; border-color:#3c8dbc;}
+       .nav-btn.secondary{background:rgba(255,255,255,.08); color:#e9ecef;}
+      .content{min-width:0;}
+      .content .toolbar{margin-bottom:16px; position:sticky; top:12px; z-index:20; background:#fff; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.06);} 
+      body.sidebar-collapsed .sidebar{width:56px;}
+      body.sidebar-collapsed .content{margin-left:56px !important;}
+      body.sidebar-collapsed .nav-btn span{display:none;}
+      body.sidebar-collapsed .nav-btn{justify-content:center;}
+      body.sidebar-collapsed .nav-btn .bi{margin:0;}
+   </style>
+  <style>
+    .highlight{background:yellow;}
+    /* Share modal */
+    #shareModal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:20px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:1000;max-width:400px;width:90%;}
+    #shareModal h3{margin-top:0;margin-bottom:12px;}
+    #shareModal label{display:block;margin-top:8px;margin-bottom:4px;}
+    #shareModal input{width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;}
+    #shareModal .actions{margin-top:12px;text-align:right;}
+    #shareModal .actions button{margin-left:8px;}
+    #shareLinkContainer{display:none;margin-top:12px;}
+    #shareLink{width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;}
+
+    /* Auth (Login/Register) */
+    #loginBox.auth-page{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#f6f8fb,#eef2f7);padding:24px;z-index:900;}
+    .auth-card{background:#fff;width:360px;max-width:92vw;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,0.08);padding:24px 22px;}
+    .auth-card h3{margin:0 0 6px 0;font-size:20px;color:#212529;}
+    .auth-subtitle{color:#6c757d;font-size:13px;margin-bottom:14px;}
+    .auth-logo{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+    .auth-logo img{width:40px;height:40px;border-radius:8px;object-fit:contain;}
+    .auth-logo .title{margin:0;font-size:20px;color:#212529;}
+     .auth-logo-top{display:flex;justify-content:center;align-items:center;margin-bottom:16px;}
+     .auth-logo-top img{width:200px;border-radius:16px;object-fit:contain;}
+     .input-group{margin-top:12px;}
+    .input-group label{display:block;color:#495057;font-size:13px;margin-bottom:6px;}
+    .input-group .ipt{width:100%;padding:10px 12px;border:1px solid #dee2e6;border-radius:10px;outline:none;transition:border-color .2s, box-shadow .2s;box-sizing:border-box;}
+    .input-group .ipt:focus{border-color:#6c63ff;box-shadow:0 0 0 3px rgba(108,99,255,.16);}
+    .pwd-wrap{position:relative;}
+     .pwd-wrap .ipt-box{position:relative;}
+     .pwd-toggle{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:transparent;border:0;color:#6c757d;cursor:pointer;width:45px;height:45px;display:flex;align-items:center;justify-content:center;border-radius:8px;}
+     .pwd-toggle:hover{background:rgba(108,99,255,0.08);color:#4c4cff;}
+     .pwd-toggle svg{width:22px;height:22px;display:block;}
+     .pwd-wrap .ipt{padding-right:56px;}
+    .auth-actions{display:flex;gap:10px;margin-top:16px;}
+    .auth-actions .primary{flex:1;}
+    .link-row{margin-top:8px;text-align:center;font-size:13px;color:#6c757d;}
+    .link-btn{background:none;border:0;color:#6c63ff;cursor:pointer;padding:0 4px;}
+    #loginError{color:#dc3545;font-size:13px;margin-top:8px;}
+
+    /* Register modal */
+    #registerBackdrop{position:fixed;inset:0;background:rgba(0,0,0,0.35);display:none;z-index:1050;}
+    #registerModal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:12px;width:420px;max-width:92vw;padding:20px;box-shadow:0 10px 30px rgba(0,0,0,0.12);z-index:1060;display:none;}
+    #registerModal h3{margin:0 0 6px 0;}
+    #registerError{color:#dc3545;font-size:13px;margin-top:8px;}
+    #registerModal .modal-actions{display:flex;gap:10px;margin-top:16px;}
+  </style>
+  <link rel="icon" type="image/x-icon" href="./img/logo.ico">
+</head>
+<body>
+  <div class="container">
+    <h1 style="display:none;">HaCloud</h1>
+    
+    <!-- 登录框（美化） -->
+    <div id="loginBox" class="auth-page" style="display:none;">
+      <div class="auth-logo-top">
+        <img src="./img/logo.png" alt="HaCloud Logo" onerror="this.onerror=null;this.src='./img/logo.ico'" />
+      </div>
+      <div class="auth-card">
+        <h3>欢迎登录</h3>
+        <div class="auth-subtitle">使用您的账号访问 HaCloud</div>
+        <div class="input-group">
+          <label for="username">用户名</label>
+          <input type="text" id="username" class="ipt" placeholder="请输入用户名" autocomplete="username" />
+        </div>
+        <div class="input-group pwd-wrap">
+          <label for="password">密码</label>
+          <div class="ipt-box">
+            <input type="password" id="password" class="ipt" placeholder="请输入密码" autocomplete="current-password" onkeypress="if(event.key==='Enter') login()"/>
+            <button type="button" class="pwd-toggle" aria-label="显示密码" title="显示密码" data-showing="false" onclick="togglePwd()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div id="loginError"></div>
+        <div class="auth-actions">
+          <button onclick="login()" class="primary">登录</button>
+          <button onclick="openRegisterModal()" class="secondary">注册账号</button>
+        </div>
+        <div class="link-row">
+          <span>遇到问题？</span>
+          <button class="link-btn" onclick="alert('请联系管理员重置密码')">忘记密码</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 注册弹窗 -->
+    <div id="registerBackdrop"></div>
+    <div id="registerModal" role="dialog" aria-modal="true" aria-labelledby="regTitle">
+      <h3 id="regTitle">注册账号</h3>
+      <div class="input-group">
+        <label for="regUsername">用户名（3-32位，字母数字下划线）</label>
+        <input type="text" id="regUsername" class="ipt" placeholder="例如: user_01" autocomplete="off" />
+      </div>
+      <div class="input-group">
+        <label for="regPwd1">密码（至少6位）</label>
+        <input type="password" id="regPwd1" class="ipt" placeholder="请输入密码" />
+      </div>
+      <div class="input-group">
+        <label for="regPwd2">确认密码</label>
+        <input type="password" id="regPwd2" class="ipt" placeholder="请再次输入密码" onkeypress="if(event.key==='Enter') doRegister()" />
+      </div>
+      <div id="registerError"></div>
+      <div class="modal-actions">
+        <button class="secondary" onclick="closeRegisterModal()">取消</button>
+        <button class="primary" onclick="doRegister()">提交注册</button>
+      </div>
+    </div>
+
+    <!-- 主界面 -->
+    <div id="mainArea" style="display: none;">
+      <div class="topbar" style="position:fixed; top:0; left:220px; right:0; height:56px; display:flex; align-items:center; padding:0 16px; background:#222d32; color:#e9ecef; z-index:1000; box-shadow:0 2px 6px rgba(0,0,0,.08); border-bottom:1px solid rgba(255,255,255,0.06);">
+         <div class="brand" style="font-weight:600; margin-right:16px; white-space:nowrap;">HaCloud</div>
+         <span id="breadcrumb" style="flex:1; margin-right:12px;"></span>
+         <div class="top-search" style="display:flex; align-items:center; gap:8px; margin-right:12px; white-space:nowrap;">
+           <div style="position:relative;">
+             <i class="bi bi-search" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); color:#adb5bd;"></i>
+             <input type="text" id="searchKw" placeholder="关键词" onkeypress="if(event.key==='Enter') performSearch()" style="background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.2); border-radius:16px; padding:6px 10px 6px 28px; width:220px; outline:none;">
+           </div>
+           <button id="searchBtn" onclick="performSearch()" class="secondary" style="background:rgba(255,255,255,0.16); color:#fff; border:1px solid rgba(255,255,255,0.2);">搜索</button>
+           <button id="filterToggleBtn" class="secondary" onclick="toggleFilterPanel()" style="background:rgba(255,255,255,0.16); color:#fff; border:1px solid rgba(255,255,255,0.2);"><i class="bi bi-funnel"></i> 筛选</button>
+         </div>
+         <div class="top-actions" style="display:flex; align-items:center; gap:8px; white-space:nowrap;">
+           <button id="batchDownloadBtn" class="secondary" onclick="batchDownload()" disabled style="display:none;">批量下载</button>
+           <button id="batchMoveBtn" class="secondary" onclick="batchMove()" disabled style="display:none;">批量移动</button>
+           <button id="batchDeleteBtn" class="secondary" onclick="batchDelete()" disabled style="display:none;">批量删除</button>
+           <button id="trashBatchRestoreBtn" class="secondary" onclick="trashBatchRestore()" disabled style="display:none;">批量还原</button>
+           <button id="trashBatchDeleteBtn" class="secondary" onclick="trashBatchDelete()" disabled style="display:none;">批量清除</button>
+           <span id="trashSelCount" style="display:none;">未选择任何条目</span>
+           <span id="selCount" style="display:none;">未选择任何文件</span>
+         </div>
+       </div>
+      <div class="app">
+        <aside class="sidebar">
+          <div style="display:flex; align-items:center; justify-content:flex-start; margin-bottom:8px;">
+            <button id="sidebarToggle" class="nav-btn secondary" style="width:auto; padding:6px 10px;" title="折叠/展开" onclick="document.body.classList.toggle('sidebar-collapsed')"><i class="bi bi-list"></i><span style="margin-left:6px;">菜单</span></button>
+          </div>
+          <div class="nav-section">
+            <button id="refreshBtn" onclick="listFiles()" class="primary nav-btn"><i class="bi bi-arrow-repeat"></i><span>刷新</span></button>
+            <button id="mySpaceBtn" onclick="switchToMySpace()" class="secondary nav-btn"><i class="bi bi-person"></i><span>我的空间</span></button>
+            <button id="mkdirBtn" onclick="createFolder()" class="nav-btn"><i class="bi bi-folder-plus"></i><span>新建文件夹</span></button>
+            <button id="versionsBtn" onclick="showVersions()" class="nav-btn" style="display:none;"><i class="bi bi-clock-history"></i><span>版本</span></button>
+            <button id="trashBtn" onclick="showTrash()" class="nav-btn"><i class="bi bi-trash3"></i><span>回收站</span></button>
+            <button id="shareBtn" onclick="showShares()" class="nav-btn"><i class="bi bi-share"></i><span>分享</span></button>
+            <button id="uploadBtn" class="nav-btn"><i class="bi bi-cloud-upload"></i><span>上传文件</span></button>
+            <button id="adminAuditBtn" onclick="showAudit()" class="secondary nav-btn" style="display:none;"><i class="bi bi-journal-text"></i><span>审计日志</span></button>
+            <button id="adminUsersBtn" onclick="showUsers()" class="secondary nav-btn" style="display:none;"><i class="bi bi-people"></i><span>用户管理</span></button>
+          </div>
+          <div id="accountSection" class="nav-section" style="margin-top:12px; display:none;">
+            <button id="changePwdBtn" onclick="changePassword()" class="secondary nav-btn"><i class="bi bi-key"></i><span>修改密码</span></button>
+            <button onclick="logout()" class="secondary nav-btn"><i class="bi bi-box-arrow-right"></i><span>登出</span></button>
+            <button id="userInfoBtn" class="secondary nav-btn" title="" style="cursor:default;"><i class="bi bi-person-circle"></i><span id="userInfo"></span></button>
+          </div>
+        </aside>
+        <div class="content" style="flex:1; margin-left:220px; margin-top:56px; padding-right:12px;">
+          <div class="toolbar">
+            <div class="toolbar-row path-row">
+              <input type="text" id="path" style="display:none;">
+              <div style="margin-left:auto; display:flex; gap:8px; align-items:center;"></div>
+            </div>
+          </div>
+          <!-- <div id="pagination" style="margin:16px 0 8px 0;"></div> -->
+
+          <table class="hide-ops">
+            <thead>
+              <tr>
+                <th><input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)"></th>
+                <th>名称</th>
+                <th>类型</th>
+                <th>大小</th>
+                <th>修改时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="list">
+              <tr><td colspan="6">加载中...</td></tr>
+            </tbody>
+          </table>
+          <div id="hint"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 分享外链设置弹窗 -->
+  <div id="shareModal" style="display:none;">
+    <h3>创建分享外链</h3>
+    <form id="shareForm" onsubmit="event.preventDefault();handleShareSubmit();">
+      <input type="hidden" id="sharePath">
+      <label>有效期(小时):
+        <input id="shareHours" type="number" min="1" value="24">
+      </label>
+      <label>访问密码(可留空):
+        <input id="sharePassword" type="text" maxlength="32">
+      </label>
+      <label>下载次数上限(0 表示不限):
+        <input id="shareMaxDownloads" type="number" min="0" value="0">
+      </label>
+      <div id="shareLinkContainer">
+        <label>分享链接:
+          <input id="shareLink" type="text" readonly>
+        </label>
+        <button type="button" class="secondary" onclick="copyShareLink()">复制</button>
+      </div>
+      <div id="shareStatus" class="muted" style="margin-top:8px;"></div>
+      <div class="actions">
+        <button type="button" class="secondary" onclick="closeShareModal()">关闭</button>
+        <button type="submit" id="shareSubmitBtn" class="primary">创建</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- 顶部筛选面板 -->
+  <div id="filterPanel" style="display:none; position:fixed; top:56px; right:16px; background:#fff; color:#333; padding:12px; border-radius:8px; box-shadow:0 6px 16px rgba(0,0,0,.2); z-index:1200; min-width:320px; border:1px solid #e9ecef;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+      <div style="font-weight:600;">筛选</div>
+      <button class="secondary" onclick="toggleFilterPanel(false)">关闭</button>
+    </div>
+    <div class="toolbar-row" style="margin:0 0 8px 0;">
+      <label class="muted">类型</label>
+      <select id="searchType" style="flex:1;">
+        <option value="">全部</option>
+        <option value="file">文件</option>
+        <option value="dir">文件夹</option>
+      </select>
+    </div>
+    <div class="toolbar-row" style="margin:0 0 8px 0;">
+      <label class="muted">所有者</label>
+      <input type="text" id="searchOwner" placeholder="所有者" style="flex:1;">
+    </div>
+    <div class="toolbar-row" style="margin:0 0 8px 0;">
+      <label class="muted">时间</label>
+      <input type="date" id="searchFrom" style="flex:1;">
+      <span class="muted">至</span>
+      <input type="date" id="searchTo" style="flex:1;">
+    </div>
+    <div style="text-align:right;">
+      <button id="searchResetBtn" class="secondary" onclick="resetSearch()">清空</button>
+      <button class="primary" onclick="performSearch()">应用</button>
+    </div>
+  </div>
+
+  <script>
+    function toggleFilterPanel(force){
+      const p=document.getElementById('filterPanel');
+      const show = typeof force==='boolean'? force : (p.style.display==='none');
+      p.style.display = show? 'block' : 'none';
+    }
+
+    // 折叠态下同步顶栏 left，避免遮挡内容
+    function syncTopbarLeft(){
+      const tb=document.querySelector('.topbar');
+      if(!tb) return;
+      tb.style.left = document.body.classList.contains('sidebar-collapsed') ? '56px' : '220px';
+    }
+    const __tbObserver = new MutationObserver(syncTopbarLeft);
+    __tbObserver.observe(document.body,{attributes:true, attributeFilter:['class']});
+    window.addEventListener('resize', syncTopbarLeft);
+    window.addEventListener('DOMContentLoaded', syncTopbarLeft);
+    syncTopbarLeft();
+
+    let currentView = 'files';
+  let selectedPaths = new Set();
+let selectedTrash = new Set();
+const DRAG_THRESHOLD = 4; // 拖拽生效的最小位移阈值（像素）
+let suppressRowClick = false; // 在发生框选后抑制紧随其后的行点击
+function refreshTrashBatchButtons(){
+  const cntNum = selectedTrash.size;
+  const show = cntNum > 1; // <=1 隐藏
+  ['trashBatchRestoreBtn','trashBatchDeleteBtn'].forEach(id=>{
+    const btn=document.getElementById(id); if(!btn) return; btn.style.display = show?'inline-block':'none'; if(show) btn.removeAttribute('disabled'); else btn.setAttribute('disabled','disabled');
+  });
+  const cnt=document.getElementById('trashSelCount'); if(cnt){ cnt.style.display = show?'inline':'none'; cnt.textContent = show?`已选择 ${cntNum} 项`:'未选择任何条目'; }
+  updateTrashSelectAllCheckbox();
+}
+function updateTrashSelectAllCheckbox(){
+  const allCb=document.getElementById('selectAll'); if(!allCb) return;
+  const rowCbs=[...document.querySelectorAll('#list input.trashSel')];
+  if(rowCbs.length===0){ allCb.checked=false; allCb.indeterminate=false; return; }
+  const checked=rowCbs.filter(cb=>cb.checked).length;
+  allCb.checked = checked===rowCbs.length;
+  allCb.indeterminate = checked>0 && checked<rowCbs.length;
+}
+
+function refreshBatchButtons(){
+  const cntNum = selectedPaths.size;
+  const show = cntNum > 1; // 选择数量<=1时隐藏批量按钮与计数
+  const ids=['batchDownloadBtn','batchMoveBtn','batchDeleteBtn'];
+  ids.forEach(id=>{
+    const btn=document.getElementById(id); if(!btn) return;
+    btn.style.display = show ? 'inline-block' : 'none';
+    if(show) btn.removeAttribute('disabled'); else btn.setAttribute('disabled','disabled');
+  });
+  const cnt=document.getElementById('selCount');
+  if(cnt){
+    cnt.style.display = show ? 'inline' : 'none';
+    cnt.textContent = show ? `已选择 ${cntNum} 个文件` : '未选择任何文件';
+  }
+  updateSelectAllCheckbox();
+}
+function updateSelectAllCheckbox(){
+  const allCb=document.getElementById('selectAll'); if(!allCb) return;
+  const rowCbs=[...document.querySelectorAll(`#list input.${currentView==='trash'?'trashSel':'rowSel'}`)];
+  if(rowCbs.length===0){ allCb.checked=false; allCb.indeterminate=false; return; }
+  const checked=rowCbs.filter(cb=>cb.checked).length;
+  allCb.checked = checked===rowCbs.length;
+  allCb.indeterminate = checked>0 && checked<rowCbs.length;
+}
+function toggleSelectAll(el){
+  const checked = el.checked;
+  const cls=currentView==='trash'?'trashSel':'rowSel';
+  document.querySelectorAll(`#list input.${cls}`).forEach(cb=>{ cb.checked=checked; cb.dispatchEvent(new Event('change')); });
+}
+async function batchDownload(){
+  if(selectedPaths.size===0) return;
+  try{
+    const res = await apiFetch('/api/batch/download', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({paths:[...selectedPaths]})});
+    if(!res.ok){ const d=await res.json().catch(()=>({})); alert('批量下载失败：'+(d.error||res.status)); return; }
+    const blob=await res.blob(); const url=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download='archive.zip'; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(url); a.remove();},0);
+  }catch(e){ alert('批量下载失败：'+(e.message||e)); }
+}
+async function batchMove(){
+  if(selectedPaths.size===0) return;
+  if(!hasPermissionForBatch([...selectedPaths])){ alert('无权限移动所选文件'); return; }
+  const dest = await selectDirectory(document.getElementById('path').value || '');
+  if(dest===null) return; // 允许空字符串表示公共目录
+  try{
+    const res = await apiFetch('/api/batch/move',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fromPaths:[...selectedPaths],to:dest})});
+    if(!res.ok){ const d=await res.json().catch(()=>({})); alert('批量移动失败：'+(d.error||res.status)); return; }
+    alert('批量移动成功');
+    selectedPaths.clear(); refreshBatchButtons(); listFiles();
+  }catch(e){ alert('批量移动失败：'+(e.message||e)); }
+}
+async function batchDelete(){
+  if(selectedPaths.size===0) return;
+  if(!hasPermissionForBatch([...selectedPaths])){ alert('无权限删除所选文件'); return; }
+  if(!(await customConfirm(`确认删除所选${selectedPaths.size}项？`))) return;
+  try{
+    const res = await apiFetch('/api/batch/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({paths:[...selectedPaths]})});
+    if(!res.ok){ const d=await res.json().catch(()=>({})); alert('批量删除失败：'+(d.error||res.status)); return; }
+    alert('批量删除成功');
+    selectedPaths.clear(); refreshBatchButtons(); listFiles();
+  }catch(e){ alert('批量删除失败：'+(e.message||e)); }
+}
+
+async function trashBatchRestore(){
+  if(selectedTrash.size===0) return;
+  try{
+    const res=await apiFetch('/api/trash/batch/restore',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids:[...selectedTrash]})});
+    if(!res.ok){const d=await res.json().catch(()=>({}));alert('批量还原失败：'+(d.error||res.status));return;}
+    alert('批量还原成功');
+    selectedTrash.clear(); refreshTrashBatchButtons(); showTrash();
+  }catch(e){alert('批量还原失败：'+(e.message||e));}
+}
+async function trashBatchDelete(){
+  if(selectedTrash.size===0) return;
+  if(!(await customConfirm(`确认彻底删除所选${selectedTrash.size}项？此操作不可恢复！`))) return;
+  try{
+    const res=await apiFetch('/api/trash/batch/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids:[...selectedTrash]})});
+    if(!res.ok){const d=await res.json().catch(()=>({}));alert('批量清除失败：'+(d.error||res.status));return;}
+    alert('批量清除成功');
+    selectedTrash.clear(); refreshTrashBatchButtons(); showTrash();
+  }catch(e){alert('批量清除失败：'+(e.message||e));}
+}
+
+    // 会话与请求封装
+    function getToken() { return localStorage.getItem('token') || ''; }
+    function setToken(t) { localStorage.setItem('token', t||''); }
+    function getUserInfo() { try { return JSON.parse(localStorage.getItem('user')||'null'); } catch(_) { return null; } }
+    function setUserInfo(u) { localStorage.setItem('user', JSON.stringify(u||null)); }
+    // Map .users/<username>/... to @me/... for display and API usage
+    function toMePath(p) {
+      const u = getUserInfo();
+      const name = u && u.username;
+      if (!p || !name) return p || '';
+      const norm = String(p).replace(/^\/+|\/+$/g, '');
+      const prefix = `.users/${name}`;
+      if (norm === prefix) return '@me';
+      if (norm.startsWith(prefix + '/')) return '@me/' + norm.slice(prefix.length + 1);
+      return p;
+    }
+    async function apiFetch(url, opts={}) {
+      opts.headers = opts.headers || {};
+      const tok = getToken();
+      if (tok) opts.headers['Authorization'] = 'Bearer ' + tok;
+      return fetch(url, opts);
+    }
+
+    // 权限辅助：基于路径和文件名前缀“(username) ”进行前端预判
+    function isAdmin(){ const u = getUserInfo(); return !!u && u.role === 'admin'; }
+    function currentUsername(){ const u = getUserInfo(); return (u && u.username) || ''; }
+    function isPublicPath(p){ const norm = String(p||'').replace(/^\/+|\/+$/g, ''); return !(norm === '@me' || norm.startsWith('@me/')); }
+    function namePrefixOf(name){ const m = /^\(([^)]+)\)\s/.exec(String(name||'')); return m ? m[1] : ''; }
+    // 前端权限预判：管理员始终允许；私有目录允许；公共区要求文件名前缀与当前用户名一致
+    function canOperatePath(p){
+      if(isAdmin()) return true;
+      const me=currentUsername(); if(!me) return false;
+      const tp=toMePath(p);
+      if(tp==='@me'||tp.startsWith('@me/')) return true;
+      const base=tp.split('/').pop(); const pre=namePrefixOf(base);
+      return pre===me;
+    }
+    function hasPermissionForBatch(arr){ return arr.every(canOperatePath); }
+
+    // 带鉴权下载文件
+    async function downloadFile(path, filename){
+      try{
+        const p = toMePath(path);
+        const res = await apiFetch(`/api/download?path=${encodeURIComponent(p)}`);
+        if (!res.ok) {
+          const d = await res.json().catch(()=>({}));
+          alert('下载失败：' + (d.error || res.status));
+          return;
+        }
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = filename || 'download';
+        document.body.appendChild(a); a.click();
+        setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 0);
+      }catch(e){ alert('下载失败：' + (e.message||e)); }
+    }
+
+    // 预览辅助（定义见下方）
+
+    function _extLower(name){ const m = /\.([^.]+)$/.exec(String(name||'')); return m ? m[1].toLowerCase() : ''; }
+    function _isImage(ext){ return ['png','jpg','jpeg','gif','webp','bmp','svg'].includes(ext); }
+    function _isVideo(ext){ return ['mp4','webm','ogg'].includes(ext); }
+    function _isAudio(ext){ return ['mp3','wav','ogg','m4a','aac','flac'].includes(ext); }
+    function _isPDF(ext){ return ext === 'pdf'; }
+    function _isText(ext){ return ['txt','md','json','log','csv','xml','yml','yaml','ini','conf','js','ts','css','html','go','py','java','c','cpp','rs','sh','bat','ps1'].includes(ext); }
+    function _isOffice(ext){ return ['doc','docx','xls','xlsx','ppt','pptx'].includes(ext); }
+    function _mimeByExt(ext){
+      switch(ext){
+        // image
+        case 'jpg': case 'jpeg': return 'image/jpeg';
+        case 'png': return 'image/png';
+        case 'gif': return 'image/gif';
+        case 'webp': return 'image/webp';
+        case 'bmp': return 'image/bmp';
+        case 'svg': return 'image/svg+xml';
+        // audio
+        case 'mp3': return 'audio/mpeg';
+        case 'wav': return 'audio/wav';
+        case 'ogg': return 'audio/ogg';
+        case 'm4a': return 'audio/mp4';
+        case 'aac': return 'audio/aac';
+        case 'flac': return 'audio/flac';
+        // video
+        case 'mp4': return 'video/mp4';
+        case 'webm': return 'video/webm';
+        // document
+        case 'pdf': return 'application/pdf';
+        default: return 'application/octet-stream';
+      }
+    }
+    async function loadScriptOnce(src, checkFn){
+      try { if (typeof checkFn === 'function' && checkFn()) return; } catch(_){ }
+      await new Promise((resolve, reject)=>{
+        const s = document.createElement('script'); s.src = src; s.async = true;
+        s.onload = ()=> resolve();
+        s.onerror = ()=> reject(new Error('加载脚本失败: '+src));
+        document.head.appendChild(s);
+      });
+    }
+    function isLocalhost(){
+      const h = location.hostname;
+      return h === 'localhost' || h === '127.0.0.1' || h.endsWith('.local');
+    }
+ 
+    async function showPreview(path, name, size){
+      try{
+        const p = toMePath(path||'');
+        const ext = _extLower(name||'');
+        // Modal 基础结构
+        const overlay = document.createElement('div'); overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:9999;';
+        const panel = document.createElement('div'); panel.style.cssText='width:92vw;max-width:1280px;height:88vh;background:#fff;border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,.3);display:flex;flex-direction:column;overflow:hidden;';
+        const header = document.createElement('div'); header.style.cssText='padding:10px 14px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:8px;';
+        const title = document.createElement('div'); title.textContent = name || '预览'; title.style.cssText='flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600;';
+        const openBtn = document.createElement('button'); openBtn.textContent='新窗口打开'; openBtn.className='secondary'; openBtn.style.marginRight='8px';
+        const downBtn = document.createElement('button'); downBtn.textContent='下载'; downBtn.className='secondary'; downBtn.style.marginRight='8px'; downBtn.onclick = ()=> downloadFile(p, name);
+        const closeBtn = document.createElement('button'); closeBtn.textContent='关闭'; closeBtn.className='secondary';
+        const body = document.createElement('div'); body.style.cssText='flex:1;background:#fafafa;overflow:auto;';
+        header.appendChild(title); header.appendChild(openBtn); header.appendChild(downBtn); header.appendChild(closeBtn);
+        panel.appendChild(header); panel.appendChild(body); overlay.appendChild(panel); document.body.appendChild(overlay);
+        function cleanup(){ overlay.remove(); document.removeEventListener('keydown', escHandler); }
+        function escHandler(e){ if (e.key === 'Escape') cleanup(); }
+        document.addEventListener('keydown', escHandler);
+        overlay.addEventListener('click', (e)=>{ if (e.target === overlay) cleanup(); });
+        closeBtn.onclick = cleanup;
+
+        // Office 分支：优先尝试统一转换为 PDF 预览（doc/docx/ppt/pptx/xls/xlsx）
+        if (_isOffice(ext)){
+          // 尝试统一转换为 PDF（失败则走后续兼容逻辑）
+          if (['doc','docx','ppt','pptx','xls','xlsx'].includes(ext)){
+            try{
+              const url = `/api/convert/pdf?path=${encodeURIComponent(p)}`;
+              const res = await apiFetch(url);
+              if(res.ok){
+                const blob = await res.blob();
+                const pdfUrl = URL.createObjectURL(new Blob([blob], {type:'application/pdf'}));
+                const iframe = document.createElement('iframe'); iframe.style.cssText='width:100%;height:100%;border:0;'; iframe.src = pdfUrl; body.innerHTML=''; body.appendChild(iframe);
+                openBtn.onclick = ()=> window.open(pdfUrl,'_blank');
+                return;
+              }
+            }catch(_){ /* fallthrough */ }
+          }
+          if (ext === 'docx'){
+            await loadScriptOnce('https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js', ()=> window.mammoth);
+            const res = await apiFetch(`/api/download?path=${encodeURIComponent(p)}`);
+            if (!res.ok) { const d = await res.json().catch(()=>({})); body.innerHTML = '<div style="padding:16px;color:#f33;">获取文件失败：' + (d.error || res.status) + '</div>'; return; }
+            const ab = await res.arrayBuffer();
+            const r = await window.mammoth.convertToHtml({ arrayBuffer: ab });
+            body.innerHTML = `<div class="docx-body" style="padding:12px 16px;line-height:1.6;">${r.value}</div>`;
+            openBtn.onclick = ()=>{ const blob = new Blob([ab], {type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'}); const url = URL.createObjectURL(blob); window.open(url,'_blank'); };
+            return;
+          }
+          if (ext === 'xlsx' || ext === 'xls'){
+            await loadScriptOnce('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js', ()=> window.XLSX);
+            const res = await apiFetch(`/api/download?path=${encodeURIComponent(p)}`);
+            if (!res.ok) { const d = await res.json().catch(()=>({})); body.innerHTML = '<div style="padding:16px;color:#f33;">获取文件失败：' + (d.error || res.status) + '</div>'; return; }
+            const ab = await res.arrayBuffer();
+            const wb = window.XLSX.read(ab, { type: 'array' });
+            const tabs = document.createElement('div'); tabs.style.cssText='display:flex;gap:6px;padding:8px 8px 0;border-bottom:1px solid #eee;position:sticky;top:0;background:#fff;z-index:1;';
+            const cont = document.createElement('div'); cont.style.cssText='padding:8px;';
+            let first = true;
+            wb.SheetNames.forEach((sn)=>{
+              const btn = document.createElement('button'); btn.textContent = sn; btn.className='secondary'; btn.style.marginRight='4px';
+              btn.onclick = ()=>{ cont.innerHTML = window.XLSX.utils.sheet_to_html(wb.Sheets[sn]); };
+              tabs.appendChild(btn);
+              if (first){ cont.innerHTML = window.XLSX.utils.sheet_to_html(wb.Sheets[sn]); first = false; }
+            });
+            body.appendChild(tabs); body.appendChild(cont);
+            openBtn.onclick = ()=>{ const blob = new Blob([ab], {type: ext==='xlsx'?'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':'application/vnd.ms-excel'}); const url = URL.createObjectURL(blob); window.open(url,'_blank'); };
+            return;
+          }
+          // 新增：doc/ppt/pptx 本地转换为 PDF 预览
+          if (ext === 'doc' || ext === 'ppt' || ext === 'pptx'){
+            try{
+              const url = `/api/convert/pdf?path=${encodeURIComponent(p)}`;
+              const res = await apiFetch(url);
+              if (!res.ok){
+                const d = await res.json().catch(()=>({}));
+                throw new Error(d.error || `转换失败(${res.status})`);
+              }
+              const blob = await res.blob();
+              const pdfUrl = URL.createObjectURL(new Blob([blob], {type:'application/pdf'}));
+              const iframe = document.createElement('iframe'); iframe.style.cssText='width:100%;height:100%;border:0;'; iframe.src = pdfUrl; body.innerHTML=''; body.appendChild(iframe);
+              openBtn.onclick = ()=> window.open(pdfUrl,'_blank');
+              return;
+            }catch(e){
+              // 回退到原逻辑：本机 Office 打开
+              const sres = await apiFetch('/api/share/create', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ path: p, expireHours: 1, password: '' }) });
+              const sdata = await sres.json().catch(()=>({}));
+              if (!sres.ok || !sdata.token) { body.innerHTML = '<div style="padding:16px;color:#f33;">创建临时外链失败，建议直接下载。</div>'; return; }
+              const token = sdata.token; const link = location.origin + '/s/' + token;
+              if (!isLocalhost()){
+                const officeUrl = 'https://view.officeapps.live.com/op/view.aspx?src=' + encodeURIComponent(link);
+                const iframe = document.createElement('iframe'); iframe.style.cssText='width:100%;height:100%;border:0;'; iframe.src = officeUrl; body.innerHTML=''; body.appendChild(iframe);
+                openBtn.onclick = ()=> window.open(officeUrl,'_blank');
+              } else {
+                const scheme = (ext==='doc')?'ms-word:ofe|u|':(ext.startsWith('ppt')?'ms-powerpoint:ofe|u|':'ms-excel:ofe|u|');
+                body.innerHTML = `<div style="padding:16px;">当前运行在本机或内网环境，在线预览不可用。您可以：<br/>1) 点击“下载”保存本地查看；<br/>2) 尝试使用已安装的 Office 直接打开：<a href="${scheme}${encodeURIComponent(link)}">在本机 Office 打开</a></div>`;
+                openBtn.onclick = ()=> window.open(`${scheme}${encodeURIComponent(link)}`,'_self');
+              }
+              const revoke = async ()=>{ try{ await apiFetch(`/api/share/revoke?token=${encodeURIComponent(token)}`, { method:'DELETE' }); }catch(_){} };
+              overlay.addEventListener('click', (e)=>{ if (e.target === overlay) { revoke(); cleanup(); } });
+              closeBtn.onclick = ()=>{ revoke(); cleanup(); };
+              return;
+            }
+          }
+          // 旧逻辑（公网 Office Online或本机打开）
+          const sres = await apiFetch('/api/share/create', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ path: p, expireHours: 1, password: '' }) });
+          const sdata = await sres.json().catch(()=>({}));
+          if (!sres.ok || !sdata.token) { body.innerHTML = '<div style="padding:16px;color:#f33;">创建临时外链失败，建议直接下载。</div>'; return; }
+          const token = sdata.token; const link = location.origin + '/s/' + token;
+          if (!isLocalhost()){
+            const officeUrl = 'https://view.officeapps.live.com/op/view.aspx?src=' + encodeURIComponent(link);
+            const iframe = document.createElement('iframe'); iframe.style.cssText='width:100%;height:100%;border:0;'; iframe.src = officeUrl; body.innerHTML=''; body.appendChild(iframe);
+            openBtn.onclick = ()=> window.open(officeUrl,'_blank');
+          } else {
+            const scheme = (ext==='doc')?'ms-word:ofe|u|':(ext.startsWith('ppt')?'ms-powerpoint:ofe|u|':'ms-excel:ofe|u|');
+            body.innerHTML = `<div style="padding:16px;">当前运行在本机或内网环境，在线预览不可用。您可以：<br/>1) 点击“下载”保存本地查看；<br/>2) 尝试使用已安装的 Office 直接打开：<a href="${scheme}${encodeURIComponent(link)}">在本机 Office 打开</a></div>`;
+            openBtn.onclick = ()=> window.open(`${scheme}${encodeURIComponent(link)}`,'_self');
+          }
+          const revoke = async ()=>{ try{ await apiFetch(`/api/share/revoke?token=${encodeURIComponent(token)}`, { method:'DELETE' }); }catch(_){} };
+          overlay.addEventListener('click', (e)=>{ if (e.target === overlay) { revoke(); cleanup(); } });
+          closeBtn.onclick = ()=>{ revoke(); cleanup(); };
+          return;
+        }
+
+        // 其余类型：拉取数据并内置预览
+        const res = await apiFetch(`/api/download?path=${encodeURIComponent(p)}`);
+        if (!res.ok) {
+          const d = await res.json().catch(()=>({}));
+          alert('获取文件失败：' + (d.error || res.status));
+          cleanup();
+          return;
+        }
+        const blob = await res.blob();
+        const guessed = _mimeByExt(ext);
+        const typeByExt = (_isImage(ext) || _isVideo(ext) || _isAudio(ext) || _isPDF(ext)) ? guessed : (_isText(ext) ? 'text/plain;charset=utf-8' : (blob.type || guessed));
+        const needOverride = (!blob.type || blob.type === '' || blob.type === 'application/octet-stream');
+        const viewBlob = _isText(ext) ? new Blob([await blob.text()], { type: 'text/plain;charset=utf-8' }) : (needOverride ? new Blob([blob], { type: typeByExt }) : blob);
+        const url = URL.createObjectURL(viewBlob);
+        openBtn.onclick = ()=> window.open(url,'_blank');
+
+        // 具体预览组件
+        let viewer = null;
+        if (_isImage(ext)) {
+          const img = document.createElement('img'); img.src = url; img.alt = name||''; img.style.maxWidth='100%'; img.style.maxHeight='100%'; img.style.objectFit='contain'; viewer = img;
+        } else if (_isVideo(ext)) {
+          const v = document.createElement('video'); v.src = url; v.controls = true; v.preload='metadata'; v.style.width='100%'; v.style.height='100%'; v.style.background='#000'; viewer = v;
+        } else if (_isAudio(ext)) {
+          const a = document.createElement('audio'); a.controls = true; a.preload='metadata'; a.style.width='96%'; a.style.margin='16px';
+          const s = document.createElement('source'); s.src = url; s.type = _mimeByExt(ext); a.appendChild(s);
+          a.src = url; // 兼容部分浏览器
+          viewer = a;
+        } else if (_isPDF(ext)) {
+          const frame = document.createElement('iframe'); frame.src = url; frame.style.width='100%'; frame.style.height='100%'; frame.style.border='0'; viewer = frame;
+        } else if (_isText(ext)) {
+          const pre = document.createElement('pre'); pre.textContent = await viewBlob.text(); pre.style.cssText='margin:0;padding:16px;white-space:pre-wrap;word-wrap:break-word;max-width:100%;box-sizing:border-box;'; viewer = pre;
+        } else {
+          // 不支持的类型
+          URL.revokeObjectURL(url);
+          if (confirm('该类型暂不支持在线预览，是否直接下载？')) downloadFile(p, name);
+          cleanup();
+          return;
+        }
+        body.appendChild(viewer);
+      }catch(e){ alert('预览失败：' + (e.message||e)); }
+    }
+
+    function showLogin(show) {
+      const loginBox = document.getElementById('loginBox');
+      const mainArea = document.getElementById('mainArea');
+      if(show){
+        loginBox.classList.add('auth-page');
+        loginBox.style.display = '';
+        mainArea.style.display = 'none';
+        const errEl = document.getElementById('loginError'); if(errEl) errEl.textContent='';
+      }else{
+        loginBox.style.display = 'none';
+        mainArea.style.display = '';
+        loginBox.classList.remove('auth-page');
+      }
+      const acc = document.getElementById('accountSection'); if (acc) acc.style.display = show ? 'none' : '';
+      if (!show) {
+        const u = getUserInfo();
+        const infoText = u ? `用户：${u.username}（${u.role}）` : '';
+        const userInfoEl = document.getElementById('userInfo'); if(userInfoEl) userInfoEl.textContent = infoText;
+        const userInfoBtn = document.getElementById('userInfoBtn'); if(userInfoBtn) userInfoBtn.title = infoText || '用户信息';
+        /* 顶栏已移除用户信息显示 */
+        // 管理员入口：用户管理 & 审计日志
+        const auditBtn = document.getElementById('adminAuditBtn');
+        const usersBtn = document.getElementById('adminUsersBtn');
+        if (u && u.role === 'admin') {
+          auditBtn.style.display = '';
+          usersBtn.style.display = '';
+        } else {
+          auditBtn.style.display = 'none';
+          usersBtn.style.display = 'none';
+        }
+      } else {
+        const auditBtn = document.getElementById('adminAuditBtn'); if (auditBtn) auditBtn.style.display = 'none';
+        const usersBtn = document.getElementById('adminUsersBtn'); if (usersBtn) usersBtn.style.display = 'none';
+        const userInfoEl = document.getElementById('userInfo'); if(userInfoEl) userInfoEl.textContent = '';
+        const uBtn = document.getElementById('userInfoBtn'); if(uBtn) uBtn.title = '';
+      }
+    }
+
+    async function login() {
+      const u = document.getElementById('username').value.trim();
+      const p = document.getElementById('password').value;
+      const errEl = document.getElementById('loginError');
+      errEl.textContent = '';
+      if (!u || !p) { errEl.textContent = '请输入用户名和密码'; return; }
+      try {
+        const res = await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ username: u, password: p }) });
+        const data = await res.json().catch(()=>({}));
+        if (!res.ok) { errEl.textContent = data.error || res.status; return; }
+        setToken(data.token || '');
+        setUserInfo(data.user || null);
+        // 清空输入
+        document.getElementById('username').value = '';
+        document.getElementById('password').value = '';
+        showLogin(false);
+        // 默认进入当前目录（根目录）
+        document.getElementById('path').value = '';
+        try{ renderBreadcrumb(); }catch(_){}
+        listFiles();
+      } catch (e) {
+        errEl.textContent = e.message || String(e);
+      }
+    }
+
+    function logout() {
+      setToken(''); setUserInfo(null);
+      showLogin(true);
+      document.getElementById('list').innerHTML = '<tr><td colspan="6">请先登录</td></tr>';
+      setHint('');
+    }
+
+    // 修改密码
+    async function changePassword(){
+      const oldPwd = prompt('请输入当前密码');
+      if (oldPwd === null) return;
+      const newPwd = prompt('请输入新密码（至少6位）');
+      if (newPwd === null) return;
+      const newPwd2 = prompt('请再次输入新密码');
+      if (newPwd2 === null) return;
+      if (newPwd.length < 6) { alert('新密码至少6位'); return; }
+      if (newPwd !== newPwd2) { alert('两次输入不一致'); return; }
+      try {
+        const res = await apiFetch('/api/password/change', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ oldPassword: oldPwd, newPassword: newPwd }) });
+        const data = await res.json().catch(()=>({}));
+        if (!res.ok) { alert('修改失败：' + (data.error || res.status)); return; }
+        alert('修改成功，请重新登录');
+        logout();
+      } catch (e) {
+        alert('请求失败：' + (e.message || e));
+      }
+    }
+
+    function renderError(msg) {
+      const tbody = document.getElementById('list');
+      tbody.innerHTML = `<tr><td colspan="5" style="color: red;">${msg}</td></tr>`;
+    }
+
+    // 面包屑渲染：根据隐藏的 #path 值生成“全部文件 / 目录 / 子目录 ...”
+    function renderBreadcrumb(){
+      const bc = document.getElementById('breadcrumb'); if(!bc) return;
+      const raw = (document.getElementById('path').value||'').replace(/^\/+|\/+$/g,'');
+      const parts = raw? raw.split('/') : [];
+      const segs = [];
+      // 根
+      const root = document.createElement('a'); root.href='javascript:void(0)'; root.textContent='公共空间';
+      root.onclick=()=>{ document.getElementById('path').value=''; listFiles(); };
+      segs.push(root);
+      let acc = '';
+      parts.forEach((p)=>{
+        const sep = document.createElement('span'); sep.className='sep'; sep.textContent=' / ';
+        segs.push(sep);
+        acc = acc? acc + '/' + p : p;
+        const a = document.createElement('a'); a.href='javascript:void(0)'; a.textContent=p;
+        a.onclick=()=>{ document.getElementById('path').value=acc; listFiles(); };
+        segs.push(a);
+      });
+      bc.innerHTML=''; segs.forEach(n=>bc.appendChild(n));
+    }
+
+    function formatSize(bytes) {
+      if (bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function setToolbarFor(view) {
+      const filesBtns=['batchDownloadBtn','batchMoveBtn','batchDeleteBtn','selCount'];
+      const trashBtns=['trashBatchRestoreBtn','trashBatchDeleteBtn','trashSelCount'];
+      filesBtns.forEach(id=>{const el=document.getElementById(id); if(!el) return; el.style.display = (view==='files')?'none':'none';});
+      trashBtns.forEach(id=>{const el=document.getElementById(id); if(!el) return; el.style.display = (view==='trash')?'none':'none';});
+      const disable = (v) => v.setAttribute('disabled', 'disabled');
+      const enable = (v) => v.removeAttribute('disabled');
+      const mkdirBtn = document.getElementById('mkdirBtn');
+      const uploadBtn = document.getElementById('uploadBtn');
+      const pathInput = document.getElementById('path');
+      if (view === 'files') {
+        enable(mkdirBtn); enable(uploadBtn); enable(pathInput);
+      } else {
+        disable(mkdirBtn); disable(uploadBtn); enable(pathInput);
+      }
+      // 切换操作列显示（文件视图隐藏、其他视图显示）
+      const tableEl=document.querySelector('table');
+      if(tableEl){ if(view==='files') tableEl.classList.add('hide-ops'); else tableEl.classList.remove('hide-ops'); }
+      // 调整空占位行的列数
+      const tbodyEl=document.getElementById('list');
+      if(tbodyEl){ const ph=tbodyEl.querySelector('tr>td[colspan]'); if(ph){ ph.colSpan = (view==='files'?5:6); } }
+      // 根据视图更新表头字段名
+      try{
+        const ths = document.querySelectorAll('thead th');
+        if(ths && ths.length >= 6){
+          const map = (view === 'shares')
+            ? ['路径','状态','下载次数','过期时间','操作']
+            : ['名称','类型','大小','修改时间','操作'];
+          ths[1].textContent = map[0];
+          ths[2].textContent = map[1];
+          ths[3].textContent = map[2];
+          ths[4].textContent = map[3];
+          ths[5].textContent = map[4];
+        }
+      }catch(_){ }
+      try{ renderBreadcrumb(); }catch(_){ }
+    }
+
+    function switchToMySpace() {
+      const pathInput = document.getElementById('path');
+      pathInput.value = '@me';
+      try{ renderBreadcrumb(); }catch(_){}
+      listFiles();
+      setHint('当前路径：我的空间 (@me)');
+    }
+
+    async function listFiles() {
+      currentView = 'files';
+      setToolbarFor('files');
+      const hintEl = document.getElementById('hint');
+      hintEl.textContent = '';
+      const path = document.getElementById('path').value || '';
+      const url = `/api/files?path=${encodeURIComponent(path)}`;
+      let data;
+      try {
+        const res = await apiFetch(url);
+        if (res.status === 401) { logout(); return; }
+        if (!res.ok) {
+          const maybeJson = await res.json().catch(()=>null);
+          const errMsg = (maybeJson && maybeJson.error) ? maybeJson.error : `${res.status}`;
+          return renderError(`加载失败：${errMsg}`);
+        }
+        data = await res.json().catch(()=>({ __parse_error: true }));
+      } catch (e) {
+        return renderError(`加载失败：${e.message||e}`);
+      }
+      if (!Array.isArray(data)) {
+        if (data && data.error) return renderError(`加载失败：${data.error}`);
+        data = [];
+      }
+      const tbody = document.getElementById('list');
+      tbody.innerHTML = '';
+      if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="muted">空文件夹</td></tr>';
+        return;
+      }
+      for (const f of data) {
+        const tr = document.createElement('tr');
+      const selTd=document.createElement('td');
+      const cb=document.createElement('input'); cb.type='checkbox'; cb.className='rowSel';
+      cb.onchange=()=>{ const p=toMePath(f.path||''); if(cb.checked) selectedPaths.add(p); else selectedPaths.delete(p); tr.classList.toggle('selected', cb.checked); refreshBatchButtons(); };
+      selTd.appendChild(cb); tr.appendChild(selTd);
+      tr.addEventListener('click', (e)=>{
+        if (suppressRowClick) { suppressRowClick = false; return; } // 框选结束后的点击不触发切换
+        if (e.target.closest('input,button,a')) return;
+        cb.checked = !cb.checked;
+        cb.dispatchEvent(new Event('change'));
+      });
+        const isDir = !!f.isDir;
+        const p = toMePath(f.path || '');
+        const nameTd = document.createElement('td');
+        nameTd.classList.add('name-cell');
+        const icon = document.createElement('i'); icon.className = fileIconClass(f.name||'', isDir); nameTd.appendChild(icon);
+        const a = document.createElement('span');
+        a.textContent = f.name;
+        a.className = 'name';
+        a.onclick = () => {
+          if (isDir) {
+            document.getElementById('path').value = p;
+            try{ renderBreadcrumb(); }catch(_){}
+            listFiles();
+          } else {
+            showPreview(p, f.name||'', f.size||0);
+          }
+        };
+        nameTd.appendChild(a);
+        // 行数据属性与右键
+        tr.dataset.path = p;
+        tr.dataset.isdir = isDir ? '1' : '0';
+        tr.dataset.name = f.name || '';
+        tr.dataset.size = String(f.size || 0);
+        tr.oncontextmenu = (e)=>{ e.preventDefault(); showContextMenu(e, tr); };
+        const typeTd = document.createElement('td');
+        typeTd.textContent = isDir ? '文件夹' : '文件';
+        const sizeTd = document.createElement('td');
+        sizeTd.textContent = isDir ? '-' : formatSize(Number(f.size)||0);
+        const timeTd = document.createElement('td');
+        timeTd.textContent = f.modTime ? new Date(f.modTime).toLocaleString() : '';
+        const opsTd = document.createElement('td');
+        if (!isDir) {
+          const down = document.createElement('a');
+          down.textContent = '下载';
+          down.href = 'javascript:void(0)';
+          down.onclick = () => downloadFile(toMePath(f.path || ''), f.name || '');
+          down.style.marginRight = '8px';
+          // 新增：预览
+          const prev = document.createElement('a');
+          prev.textContent = '预览';
+          prev.href = 'javascript:void(0)';
+          prev.onclick = () => showPreview(toMePath(f.path || ''), f.name || '', f.size||0);
+          prev.style.marginRight = '8px';
+          opsTd.appendChild(prev);
+          opsTd.appendChild(down);
+
+          const ver = document.createElement('button');
+          ver.textContent = '版本';
+          ver.className = 'secondary';
+          ver.style.marginRight = '8px';
+          ver.onclick = () => showVersions(toMePath(f.path || ''), f.name || '');
+          opsTd.appendChild(ver);
+
+          const share = document.createElement('button');
+          share.textContent = '分享';
+          share.className = 'secondary';
+          share.style.marginRight = '8px';
+          share.onclick = () => createShare(toMePath(f.path || ''));
+          opsTd.appendChild(share);
+
+          const ren = document.createElement('button');
+          ren.textContent = '重命名';
+          ren.className = 'secondary';
+          ren.style.marginRight = '8px';
+          ren.onclick = async () => {
+            const p = toMePath(f.path || '');
+            // 公共区且他人上传：直接提示无权，跳过输入
+            if (isPublicPath(p) && !isAdmin() && namePrefixOf(f.name) !== currentUsername()) {
+              alert('你无权进行该操作');
+              return;
+            }
+            const name = prompt('新名称：', f.name || '');
+            if (!name) return;
+            const res = await apiFetch(`/api/rename?path=${encodeURIComponent(p)}&name=${encodeURIComponent(name)}`, { method: 'POST' });
+            if (!res.ok) {
+              let msg = '';
+              try { const d = await res.json(); msg = d && d.error; } catch(_) {}
+              alert(res.status === 403 ? '你无权进行该操作' : ('重命名失败：' + (msg || res.status)));
+              return;
+            }
+            await listFiles();
+          };
+          opsTd.appendChild(ren);
+
+          const mv = document.createElement('button');
+          mv.textContent = '移动';
+          mv.className = 'secondary';
+          mv.style.marginRight = '8px';
+          mv.onclick = async () => {
+            const p = toMePath(f.path || '');
+            // 公共区且他人上传：直接提示无权，跳过输入
+            if (isPublicPath(p) && !isAdmin() && namePrefixOf(f.name) !== currentUsername()) {
+              alert('你无权进行该操作');
+              return;
+            }
+            const to = await selectDirectory(document.getElementById('path').value || '');
+            if (to === null) return; // 允许空字符串表示公共目录
+            const res = await apiFetch(`/api/move?from=${encodeURIComponent(p)}&to=${encodeURIComponent(to)}`, { method: 'POST' });
+            if (!res.ok) {
+              let msg = '';
+              try { const d = await res.json(); msg = d && d.error; } catch(_) {}
+              alert(res.status === 403 ? '你无权进行该操作' : ('移动失败：' + (msg || res.status)));
+              return;
+            }
+            await listFiles();
+          };
+          opsTd.appendChild(mv);
+        }
+        // 目录也支持重命名/移动（下载/版本/分享仍仅限文件）
+        if (isDir) {
+          const renDir = document.createElement('button');
+          renDir.textContent = '重命名';
+          renDir.className = 'secondary';
+          renDir.style.marginRight = '8px';
+          renDir.onclick = async () => {
+            const p = toMePath(f.path || '');
+            // 公共区且他人上传：直接提示无权，跳过输入
+            if (isPublicPath(p) && !isAdmin() && namePrefixOf(f.name) !== currentUsername()) {
+              alert('你无权进行该操作');
+              return;
+            }
+            const name = prompt('新名称：', f.name || '');
+            if (!name) return;
+            const res = await apiFetch(`/api/rename?path=${encodeURIComponent(p)}&name=${encodeURIComponent(name)}`, { method: 'POST' });
+            if (!res.ok) {
+              let msg = '';
+              try { const d = await res.json(); msg = d && d.error; } catch(_) {}
+              alert(res.status === 403 ? '你无权进行该操作' : ('重命名失败：' + (msg || res.status)));
+              return;
+            }
+            await listFiles();
+          };
+          opsTd.appendChild(renDir);
+
+          const mvDir = document.createElement('button');
+          mvDir.textContent = '移动';
+          mvDir.className = 'secondary';
+          mvDir.style.marginRight = '8px';
+          mvDir.onclick = async () => {
+            const p = toMePath(f.path || '');
+            // 公共区且他人上传：直接提示无权，跳过输入
+            if (isPublicPath(p) && !isAdmin() && namePrefixOf(f.name) !== currentUsername()) {
+              alert('你无权进行该操作');
+              return;
+            }
+            const to = prompt('目标文件夹路径（例如：@me/子目录 或 public 子目录）：', document.getElementById('path').value || '');
+            if (!to) return;
+            const res = await apiFetch(`/api/move?from=${encodeURIComponent(p)}&to=${encodeURIComponent(to)}`, { method: 'POST' });
+            if (!res.ok) {
+              let msg = '';
+              try { const d = await res.json(); msg = d && d.error; } catch(_) {}
+              alert(res.status === 403 ? '你无权进行该操作' : ('移动失败：' + (msg || res.status)));
+              return;
+            }
+            await listFiles();
+          };
+          opsTd.appendChild(mvDir);
+        }
+        const del = document.createElement('button');
+        del.textContent = '删除';
+        del.className = 'secondary';
+        del.onclick = async () => {
+          const p = toMePath(f.path || '');
+          // 公共区且他人上传：直接提示无权，跳过确认
+          if (isPublicPath(p) && !isAdmin() && namePrefixOf(f.name) !== currentUsername()) {
+            alert('你无权进行该操作');
+            return;
+          }
+          if (!confirm('确认删除？')) return;
+          const res = await apiFetch(`/api/file?path=${encodeURIComponent(p)}`, { method: 'DELETE' });
+          if (!res.ok) {
+            let msg = '';
+            try { const d = await res.json(); msg = d && d.error; } catch(_) {}
+            alert(res.status === 403 ? '你无权进行该操作' : ('删除失败：' + (msg || res.status)));
+            return;
+          }
+          listFiles();
+        };
+        opsTd.appendChild(del);
+        tr.appendChild(nameTd);
+        tr.appendChild(typeTd);
+        tr.appendChild(sizeTd);
+        tr.appendChild(timeTd);
+        tr.appendChild(opsTd);
+        tbody.appendChild(tr);
+      }
+    }
+
+    async function createFolder() {
+      const name = prompt('文件夹名称：');
+      if (!name) return;
+      const path = document.getElementById('path').value || '';
+      const res = await apiFetch(`/api/mkdir?path=${encodeURIComponent(path)}&name=${encodeURIComponent(name)}`, { method: 'POST' });
+      if (!res.ok) {
+        const data = await res.json().catch(()=>({}));
+        alert('创建失败：' + (data.error || res.status));
+        return;
+      }
+      listFiles();
+    }
+
+    async function uploadFiles() {
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.multiple = true;
+      fileInput.onchange = async () => {
+        const files = fileInput.files;
+        if (!files.length) return;
+        const curPath = (document.getElementById('path').value || '').replace(/^\/+|\/+$/g, '');
+        for (const file of files) {
+          const progress = ensureProgress();
+          progress.value = 0;
+          setHint(`正在上传：${file.name} (0%)`);
+          let lastTick = Date.now();
+          const fake = setInterval(() => {
+            const now = Date.now();
+            if (now - lastTick > 700) {
+              const cur = Number(progress.value || 0);
+              if (cur < 90) progress.value = Math.min(90, cur + 1);
+            }
+          }, 200);
+
+          const targetRel = (curPath ? curPath + '/' : '') + file.name;
+          const key = `upload:${targetRel}:${file.size}`;
+          let uploadId = localStorage.getItem(key) || '';
+
+          async function initSession() {
+            const res = await apiFetch(`/api/upload/init?path=${encodeURIComponent(targetRel)}&size=${file.size}`, { method: 'POST' });
+            if (!res.ok) {
+              const d = await res.json().catch(()=>({}));
+              throw new Error('创建上传会话失败：' + (d.error || res.status));
+            }
+            const d = await res.json();
+            uploadId = d.uploadId;
+            localStorage.setItem(key, uploadId);
+            return uploadId;
+          }
+
+          try { if (!uploadId) await initSession(); } catch (e) { clearInterval(fake); alert(e.message || e); continue; }
+
+          // 查询已上传偏移
+          let offset = 0;
+          async function fetchStatus(id) {
+            const r = await apiFetch(`/api/upload/status?uploadId=${encodeURIComponent(id)}`);
+            if (!r.ok) return -1;
+            const s = await r.json().catch(()=>({offset:0}));
+            return typeof s.offset === 'number' ? s.offset : 0;
+          }
+          let st = await fetchStatus(uploadId);
+          if (st < 0) {
+            // 可能服务端会话丢失，重新创建
+            try {
+              await initSession();
+              st = await fetchStatus(uploadId);
+            } catch (e) {
+              clearInterval(fake);
+              alert(e.message || e);
+              continue;
+            }
+          }
+          offset = Math.max(0, st);
+          progress.value = Math.floor((offset / Math.max(1, file.size)) * 100);
+          setHint(`正在上传：${file.name} (${progress.value}%)`);
+
+          const chunkSize = 2 * 1024 * 1024; // 2MB
+          while (offset < file.size) {
+            const end = Math.min(offset + chunkSize, file.size);
+            const chunk = file.slice(offset, end);
+            // 发送分片
+            try {
+              await new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('PATCH', `/api/upload/chunk?uploadId=${encodeURIComponent(uploadId)}&offset=${offset}`);
+                // 附带鉴权头，避免 401 导致“网络错误”
+                const _tok = getToken();
+                if (_tok) xhr.setRequestHeader('Authorization', 'Bearer ' + _tok);
+                xhr.upload.onprogress = (e) => {
+                  lastTick = Date.now();
+                  const loaded = offset + (e && e.loaded ? e.loaded : 0);
+                  const percent = Math.min(99, Math.floor((loaded / Math.max(1, file.size)) * 100));
+                  progress.value = percent;
+                  setHint(`正在上传：${file.name} (${percent}%)`);
+                };
+                xhr.onload = () => {
+                  if (xhr.status >= 200 && xhr.status < 300) {
+                    try {
+                      const d = JSON.parse(xhr.responseText || '{}');
+                      if (typeof d.offset === 'number') {
+                        offset = d.offset;
+                      } else {
+                        offset = end; // 兜底：按期望推进
+                      }
+                    } catch (_) {
+                      offset = end;
+                    }
+                    resolve();
+                  } else if (xhr.status === 409) {
+                    // 偏移不一致，解析服务端期望值
+                    let want = end;
+                    try {
+                      const d = JSON.parse(xhr.responseText || '{}');
+                      const msg = d.error || '';
+                      const m = /want\s(\d+)/.exec(msg);
+                      if (m) want = parseInt(m[1], 10);
+                    } catch (_) {}
+                    offset = want;
+                    resolve(); // 不直接失败，循环将用新的 offset 重试
+                  } else if (xhr.status === 401) {
+                    reject(new Error('未登录或会话已过期，请重新登录'));
+                  } else {
+                    reject(new Error('分片上传失败：' + xhr.status));
+                  }
+                };
+                xhr.onerror = () => reject(new Error('网络错误'));
+                xhr.send(chunk);
+              });
+            } catch (err) {
+              clearInterval(fake);
+              alert((err && err.message) ? err.message : String(err));
+              // 保留本地 uploadId 以便下次继续
+              continue;
+            }
+          }
+
+          // 完成上传
+          try {
+            const comp = await apiFetch(`/api/upload/complete?uploadId=${encodeURIComponent(uploadId)}`, { method: 'POST' });
+            clearInterval(fake);
+            if (!comp.ok) {
+              const d = await comp.json().catch(()=>({}));
+              throw new Error('完成上传失败：' + (d.error || comp.status));
+            }
+            progress.value = 100;
+            setHint('上传完成：' + file.name);
+            localStorage.removeItem(key);
+          } catch (e) {
+            alert(e.message || e);
+          }
+        }
+        removeProgress();
+        listFiles();
+      };
+      fileInput.click();
+    }
+
+    function ensureProgress() {
+      const hint = document.getElementById('hint');
+      if (!hint._progress) {
+        // 清空文本，但保留容器
+        hint.textContent = '';
+        const p = document.createElement('progress');
+        p.max = 100; p.value = 0; p.style.verticalAlign = 'middle';
+        hint.appendChild(p);
+        hint._progress = p;
+        const span = document.createElement('span');
+        span.style.marginLeft = '8px';
+        hint.appendChild(span);
+        hint._text = span;
+      }
+      return hint._progress;
+    }
+    function removeProgress() {
+      const hint = document.getElementById('hint');
+      if (hint._progress) { hint._progress.remove(); hint._progress = null; }
+      if (hint._text) { hint._text.remove(); hint._text = null; }
+    }
+    function setHint(text) {
+      const hint = document.getElementById('hint');
+      // 若有进度条，则只更新旁边的文字，避免把进度条清掉
+      if (hint._progress) {
+        if (!hint._text) {
+          const span = document.createElement('span');
+          span.style.marginLeft = '8px';
+          hint.appendChild(span);
+          hint._text = span;
+        }
+        hint._text.textContent = text || '';
+      } else {
+        hint.textContent = text || '';
+      }
+    }
+
+    // 文件类型图标
+    function fileIconClass(name, isDir){
+      if(isDir) return 'bi bi-folder';
+      const n=(name||'').toLowerCase();
+      const ext = n.includes('.') ? n.split('.').pop() : '';
+      if(['png','jpg','jpeg','gif','bmp','webp','svg','heic','avif'].includes(ext)) return 'bi bi-file-image';
+      if(['mp4','mkv','webm','avi','mov','m4v'].includes(ext)) return 'bi bi-file-play';
+      if(['mp3','wav','flac','aac','ogg','m4a'].includes(ext)) return 'bi bi-file-music';
+      if(['pdf'].includes(ext)) return 'bi bi-file-pdf';
+      if(['doc','docx'].includes(ext)) return 'bi bi-file-earmark-word';
+      if(['xls','xlsx','csv'].includes(ext)) return 'bi bi-file-earmark-excel';
+      if(['ppt','pptx'].includes(ext)) return 'bi bi-file-earmark-ppt';
+      if(['txt','md','log','rtf'].includes(ext)) return 'bi bi-file-text';
+      if(['zip','rar','7z','tar','gz','tgz','bz2'].includes(ext)) return 'bi bi-file-zip';
+      if(['js','ts','tsx','jsx','py','go','java','cs','cpp','c','rs','php','rb','html','css','scss','json','yml','yaml','xml','sh','bat','ps1'].includes(ext)) return 'bi bi-file-code';
+      return 'bi bi-file-earmark';
+    }
+
+    // 右键菜单
+    function setupContextMenu(){
+      if(document.getElementById('contextMenu')) return;
+      const style = document.createElement('style');
+      style.textContent = '#contextMenu{position:fixed;z-index:10000;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.2);padding:6px 0;min-width:180px;display:none;}#contextMenu .item{padding:8px 14px;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:8px;font-size:14px;}#contextMenu .item:hover{background:#f5f5f5;}#contextMenu .divider{height:1px;background:#eee;margin:6px 0;}tr.selected{background:#e7f1ff !important;}';
+      document.head.appendChild(style);
+      const menu=document.createElement('div'); menu.id='contextMenu'; document.body.appendChild(menu);
+      document.addEventListener('click', ()=> hideContextMenu());
+      window.addEventListener('blur', ()=> hideContextMenu());
+      window.addEventListener('resize', ()=> hideContextMenu());
+      document.addEventListener('scroll', ()=> hideContextMenu(), true);
+    }
+    function hideContextMenu(){ const m=document.getElementById('contextMenu'); if(m){ m.style.display='none'; m.innerHTML=''; } }
+    function showContextMenu(e, tr){
+      setupContextMenu();
+      const menu=document.getElementById('contextMenu');
+      menu.innerHTML='';
+      // 若点击项未被选中，单选该项
+      const cb = tr.querySelector('input.rowSel');
+      const p = tr.dataset.path;
+      if(cb && !cb.checked){
+        document.querySelectorAll('#list input.rowSel').forEach(x=>{x.checked=false; x.closest('tr').classList.remove('selected');});
+        selectedPaths.clear();
+        cb.checked=true; tr.classList.add('selected'); selectedPaths.add(p);
+        refreshBatchButtons();
+      }
+      const many = selectedPaths.size>1;
+      function add(label, icon, handler){
+        const it=document.createElement('div'); it.className='item';
+        const i=document.createElement('i'); i.className = icon; it.appendChild(i);
+        const span=document.createElement('span'); span.textContent=label; it.appendChild(span);
+        it.onclick = async ()=>{ hideContextMenu(); try{ await handler(); }catch(err){ alert(err.message||err); } };
+        menu.appendChild(it);
+      }
+      function divider(){ const d=document.createElement('div'); d.className='divider'; menu.appendChild(d); }
+      if(many){
+        add('批量下载','bi bi-download', async()=> batchDownload());
+        add('批量移动','bi bi-arrows-move', async()=> batchMove());
+        add('批量删除','bi bi-trash', async()=> batchDelete());
+      }else{
+        const isDir = tr.dataset.isdir==='1';
+        const name = tr.dataset.name;
+        const size = Number(tr.dataset.size||0);
+        const path = tr.dataset.path;
+        if(!isDir){
+          add('预览','bi bi-eye', async()=> showPreview(path, name, size));
+          add('下载','bi bi-download', async()=> downloadFile(path, name));
+          add('版本','bi bi-clock-history', async()=> showVersions(path, name));
+          add('分享','bi bi-share', async()=> createShare(path));
+          divider();
+        }
+        add('重命名','bi bi-pencil', async()=> renameItem({ path, name }));
+        add('移动','bi bi-folder-symlink', async()=> moveItem({ path, name }));
+        add('删除','bi bi-trash', async()=> deleteItem({ path, name }));
+      }
+      const vw = window.innerWidth, vh = window.innerHeight;
+      menu.style.display='block';
+      const rect = menu.getBoundingClientRect();
+      let x = e.clientX, y = e.clientY;
+      if(x + rect.width > vw) x = vw - rect.width - 8;
+      if(y + rect.height > vh) y = vh - rect.height - 8;
+      menu.style.left = Math.max(8,x) + 'px';
+      menu.style.top = Math.max(8,y) + 'px';
+    }
+
+    async function renameItem(f){
+      const p = toMePath((f.path)||'');
+      const nm = f.name || (f.name===undefined? (f.path? (f.path.split('/').pop()||'') : '') : f.name);
+      if (isPublicPath(p) && !isAdmin() && namePrefixOf(nm) !== currentUsername()) { alert('你无权进行该操作'); return; }
+      const name = prompt('新名称：', nm || ''); if(!name) return;
+      const res = await apiFetch(`/api/rename?path=${encodeURIComponent(p)}&name=${encodeURIComponent(name)}`, { method: 'POST' });
+      if (!res.ok) { let msg=''; try{ const d=await res.json(); msg=d&&d.error; }catch(_){} alert(res.status===403?'你无权进行该操作':('重命名失败：'+(msg||res.status))); return; }
+      await listFiles();
+    }
+    async function moveItem(f){
+      const p = toMePath((f.path)||'');
+      const nm = f.name || (f.name===undefined? (f.path? (f.path.split('/').pop()||'') : '') : f.name);
+      if (isPublicPath(p) && !isAdmin() && namePrefixOf(nm) !== currentUsername()) { alert('你无权进行该操作'); return; }
+      const to = prompt('目标文件夹路径（例如：@me/子目录 或 public 子目录）：', document.getElementById('path').value || ''); if(!to) return;
+      const res = await apiFetch(`/api/move?from=${encodeURIComponent(p)}&to=${encodeURIComponent(to)}`, { method: 'POST' });
+      if (!res.ok) { let msg=''; try{ const d=await res.json(); msg=d&&d.error; }catch(_){} alert(res.status===403?'你无权进行该操作':('移动失败：'+(msg||res.status))); return; }
+      await listFiles();
+    }
+    async function deleteItem(f){
+      const p = toMePath((f.path)||'');
+      const nm = f.name || (f.name===undefined? (f.path? (f.path.split('/').pop()||'') : '') : f.name);
+      if (isPublicPath(p) && !isAdmin() && namePrefixOf(nm) !== currentUsername()) { alert('你无权进行该操作'); return; }
+      if(!confirm('确认删除？')) return;
+      const res = await apiFetch(`/api/file?path=${encodeURIComponent(p)}`, { method: 'DELETE' });
+      if (!res.ok) { let msg=''; try{ const d=await res.json(); msg=d&&d.error; }catch(_){} alert(res.status===403?'你无权进行该操作':('删除失败：'+(msg||res.status))); return; }
+      await listFiles();
+    }
+
+    // 拖拽框选
+    function setupDragSelect(){
+      const tbody = document.getElementById('list');
+      let dragging = false;
+      let startX = 0, startY = 0;
+      let rectEl = null;
+      let keepExisting = false; // Ctrl/⌘ 多选时保留已有选择
+      let activated = false;    // 是否已跨过阈值并激活框选
+
+      function getRect(a,b,c,d){ const x=Math.min(a,c), y=Math.min(b,d); const w=Math.abs(a-c), h=Math.abs(b-d); return {x,y,w,h}; }
+      function intersects(r, el){ const b = el.getBoundingClientRect(); return !(b.right < r.x || b.left > r.x+r.w || b.bottom < r.y || b.top > r.y+r.h); }
+
+      tbody.addEventListener('mousedown', (e)=>{
+        if (e.button !== 0) return; // 仅左键
+        const target = e.target;
+        if (target.closest('input,button,a,.item')) return; // 避免操作 UI 控件时进入拖拽
+        dragging = true;
+        startX = e.clientX; startY = e.clientY;
+        keepExisting = e.ctrlKey || e.metaKey;
+        activated = false;
+        rectEl = null;
+        // 不要立即清空选择，等真正激活框选后再处理
+        e.preventDefault();
+      });
+
+      document.addEventListener('mousemove', (e)=>{
+        if (!dragging) return;
+
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+
+        // 未激活时，只有超过阈值才进入框选模式
+        if (!activated) {
+          if (Math.max(Math.abs(dx), Math.abs(dy)) < DRAG_THRESHOLD) return;
+          activated = true;
+
+          // 激活的瞬间再根据是否多选决定是否清空
+          if (!keepExisting) {
+            document.querySelectorAll('#list input.rowSel').forEach(x=>{
+              x.checked = false; x.closest('tr').classList.remove('selected');
+            });
+            selectedPaths.clear();
+            refreshBatchButtons();
+          }
+
+          // 创建选择矩形
+          rectEl = document.createElement('div');
+          rectEl.style.cssText = 'position:fixed;border:1px dashed #2196f3;background:rgba(33,150,243,0.1);z-index:9999;pointer-events:none;';
+          document.body.appendChild(rectEl);
+        }
+
+        // 已激活：更新矩形与选中状态
+        const r = getRect(startX, startY, e.clientX, e.clientY);
+        if (rectEl) {
+          rectEl.style.left = r.x + 'px';
+          rectEl.style.top = r.y + 'px';
+          rectEl.style.width = r.w + 'px';
+          rectEl.style.height = r.h + 'px';
+        }
+        document.querySelectorAll('#list tr').forEach(tr=>{
+          const cb = tr.querySelector('input.rowSel'); if (!cb) return;
+          const p = tr.dataset.path;
+          if (intersects(r, tr)) {
+            if (!cb.checked) { cb.checked = true; tr.classList.add('selected'); if (p) selectedPaths.add(p); }
+          } else if (!keepExisting) {
+            if (cb.checked) { cb.checked = false; tr.classList.remove('selected'); if (p) selectedPaths.delete(p); }
+          }
+        });
+        refreshBatchButtons();
+      });
+
+      document.addEventListener('mouseup', ()=>{
+        if (!dragging) return;
+        dragging = false;
+
+        // 如果确实发生了框选（已跨过阈值），抑制随后一次行点击
+        if (activated) {
+          suppressRowClick = true;
+          // 让抑制在下一事件循环后自动释放（保证只抑制紧随其后的 click）
+          setTimeout(()=>{ suppressRowClick = false; }, 0);
+        }
+
+        activated = false;
+        if (rectEl) { rectEl.remove(); rectEl = null; }
+      });
+    }
+
+    // === 版本管理 ===
+const selectedVersions = new Set();
+function refreshVersionsButtons(){
+  const selCount = selectedVersions.size;
+  const restoreBtn=document.getElementById('verRestoreBtn');
+  const deleteBtn=document.getElementById('verBatchDeleteBtn');
+  if(restoreBtn){ restoreBtn.disabled = selCount!==1; }
+  if(deleteBtn){ deleteBtn.disabled = selCount===0; }
+}
+
+function updateVerSelectAll(checkbox){
+  const checked = checkbox.checked;
+  document.querySelectorAll('#verList input.verSel').forEach(cb=>{ cb.checked=checked; cb.dispatchEvent(new Event('change')); });
+}
+
+async function showVersions(path,name){
+  try{
+    setHint('正在加载版本列表...');
+    const p=toMePath(path);
+    if(isPublicPath(p)&&!isAdmin()&&name&&namePrefixOf(name)!==currentUsername()){ setHint(''); alert('你无权进行该操作'); return; }
+    const res=await apiFetch(`/api/versions?path=${encodeURIComponent(p)}`);
+    if(!res.ok){ const err=await res.json().catch(()=>({})); setHint(''); alert('获取版本列表失败:'+(err.error||res.status)); return; }
+    const list=await res.json(); setHint('');
+    if(!Array.isArray(list)||list.length===0){ alert('暂无历史版本'); return; }
+    // 构建模态框
+    const overlay=document.createElement('div'); overlay.id='verModal'; overlay.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.4);z-index:9999;display:flex;align-items:center;justify-content:center;';
+    const box=document.createElement('div'); box.style.cssText='background:#fff;padding:20px;max-height:80vh;overflow:auto;border-radius:6px;min-width:360px;';
+    box.innerHTML=`<h3 style="margin-top:0">历史版本 (${toMePath(p)})</h3>`;
+    const tbl=document.createElement('table'); tbl.style.width='100%'; tbl.innerHTML=`<thead><tr><th><input type="checkbox" id="verSelectAll"></th><th>时间</th><th>大小</th></tr></thead><tbody id="verList"></tbody>`;
+    box.appendChild(tbl);
+    const actions=document.createElement('div'); actions.style.textAlign='right'; actions.style.marginTop='12px';
+    actions.innerHTML=`<button id=\"verRestoreBtn\" class=\"secondary\" disabled style=\"margin-right:8px;\">恢复</button><button id=\"verBatchDeleteBtn\" class=\"secondary\" disabled style=\"margin-right:8px;\">批量删除</button><button id=\"verCloseBtn\" class=\"secondary\">关闭</button>`;
+    box.appendChild(actions);
+    overlay.appendChild(box); document.body.appendChild(overlay);
+
+    // 填充列表
+    const tbody=tbl.querySelector('#verList');
+    list.forEach(v=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML = `
+        <td><input type="checkbox" class="verSel"></td>
+        <td>${new Date(v.ts*1000).toLocaleString()}</td>
+        <td>${formatSize(v.size)}</td>`;
+      const cb = tr.querySelector('input.verSel');
+      cb.onchange = () => { if(cb.checked) selectedVersions.add(v.ts); else selectedVersions.delete(v.ts); refreshVersionsButtons(); };
+      tbody.appendChild(tr);
+    });
+    document.getElementById('verSelectAll').onchange=function(){ updateVerSelectAll(this); refreshVersionsButtons(); };
+
+    // 按钮事件
+    document.getElementById('verRestoreBtn').onclick=async()=>{
+      if(selectedVersions.size!==1) return;
+      const ts=[...selectedVersions][0];
+      const ok = await customConfirm('确认恢复该版本？');
+        if(!ok) return;
+        overlay.remove();
+        const r=await apiFetch(`/api/versions/restore?path=${encodeURIComponent(p)}&ts=${ts}`,{method:'POST'});
+      if(!r.ok){ const e=await r.json().catch(()=>({})); alert('恢复失败:'+ (e.error||r.status)); return; }
+      await listFiles();
+      alert('已恢复所选版本');
+    };
+    
+    
+  
+    document.getElementById('verBatchDeleteBtn').onclick=async()=>{
+      if(selectedVersions.size===0) return;
+      if(!(await customConfirm(`确认删除选中的${selectedVersions.size}个版本？此操作不可恢复！`))) return;
+      for(const ts of selectedVersions){
+        const r=await apiFetch(`/api/versions/delete?path=${encodeURIComponent(p)}&ts=${ts}`,{method:'DELETE'});
+        if(!r.ok){ const e=await r.json().catch(()=>({})); alert('删除失败:'+ (e.error||r.status)); }
+      }
+      overlay.remove(); await listFiles(); alert('批量删除完成');
+    };
+    document.getElementById('verCloseBtn').onclick=()=>{ overlay.remove(); };
+  }catch(err){ setHint(''); alert('操作失败:'+(err.message||err)); }
+}
+
+    // 旧版已废弃
+async function showVersionsOld(path, name) {
+      try {
+        setHint('正在加载版本列表...');
+        const p = toMePath(path);
+        // 公共区他人上传：前置拦截
+        if (isPublicPath(p) && !isAdmin() && name && namePrefixOf(name) !== currentUsername()) {
+        setHint('');
+        alert('你无权进行该操作');
+        return;
+        }
+        const res = await apiFetch(`/api/versions?path=${encodeURIComponent(p)}`);
+        
+        if (!res.ok) {
+          const error = await res.json().catch(() => ({}));
+          setHint('');
+          if (res.status === 403) { alert('你无权进行该操作'); return; }
+          alert('获取版本列表失败: ' + (error.error || res.status));
+          return;
+        }
+        
+        const list = await res.json();
+        setHint('');
+        
+        if (!Array.isArray(list) || list.length === 0) { 
+          alert('暂无历史版本'); 
+          return; 
+        }
+        
+        const pick = prompt('选择版本序号:\n' + list.map((v,i)=>`${i+1}. ${new Date(v.ts*1000).toLocaleString()}  (${formatSize(v.size)})`).join('\n'));
+        if (!pick) return;
+        
+        const idx = parseInt(pick,10)-1; 
+        if (isNaN(idx) || idx<0 || idx>=list.length) {
+          alert('序号无效');
+          return;
+        }
+        
+        const ts = list[idx].ts;
+
+        // 选择操作：恢复或删除
+        const op = (prompt('选择操作: 1=恢复, 2=删除 (默认1)', '1') || '1').trim();
+        if (op === '2') {
+          if (!confirm('确认删除该历史版本？此操作不可恢复。')) return;
+          setHint('正在删除版本...');
+          const delRes = await apiFetch(`/api/versions/delete?path=${encodeURIComponent(p)}&ts=${ts}`, { method: 'DELETE' });
+          if (!delRes.ok) {
+            const derr = await delRes.json().catch(()=>({}));
+            setHint('');
+            alert(delRes.status === 403 ? '你无权进行该操作' : ('删除失败: ' + (derr.error || delRes.status)));
+            return;
+          }
+          setHint('删除成功，正在刷新列表...');
+          await listFiles();
+          setHint('');
+          alert('已删除所选版本');
+          return;
+        }
+        
+        // 默认为恢复
+        setHint('正在恢复版本...');
+        const res2 = await apiFetch(`/api/versions/restore?path=${encodeURIComponent(p)}&ts=${ts}`, { method: 'POST' });
+        if (!res2.ok) {
+          const err2 = await res2.json().catch(()=>({}));
+          alert(res2.status === 403 ? '你无权进行该操作' : ('版本恢复失败: ' + (err2.error || res2.status)));
+          return;
+        }
+        setHint('版本恢复成功，正在刷新列表...');
+        await listFiles();
+        setHint('');
+        alert('已恢复指定版本');
+        
+      } catch (error) {
+        setHint('');
+        alert('操作失败: ' + (error.message || error));
+        console.error('Version op error:', error);
+      }
+    }
+
+    // 回收站
+    async function showTrash() {
+      selectedTrash.clear(); refreshTrashBatchButtons();
+      currentView = 'trash';
+      setToolbarFor('trash');
+      document.getElementById('hint').textContent = '';
+      const res = await apiFetch('/api/trash');
+      const list = await res.json().catch(()=>[]);
+      const tbody = document.getElementById('list');
+      tbody.innerHTML = '';
+      if (!Array.isArray(list) || list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6">回收站为空</td></tr>';
+        setHint('当前视图：回收站  |  点击"刷新"恢复文件视图');
+        return;
+      }
+      for (const t of list) {
+        const tr = document.createElement('tr');
+        const disp = toMePath(t.relPath || '');
+        tr.innerHTML = `
+          <td><input type="checkbox" class="trashSel"></td>
+          <td class="muted">${disp}</td>
+          <td>${t.isDir ? '文件夹' : '文件'}</td>
+          <td>${t.isDir ? '-' : formatSize(t.size)}</td>
+          <td>${new Date(t.deletedAt*1000).toLocaleString()}</td>
+          <td></td>`;
+        const cb = tr.querySelector('input.trashSel');
+        cb.onchange = () => { if(cb.checked) selectedTrash.add(t.id); else selectedTrash.delete(t.id); refreshTrashBatchButtons(); };
+        const opsTd = tr.querySelector('td:last-child');
+        const restore = document.createElement('button'); restore.textContent = '还原'; restore.className='secondary'; restore.style.marginRight='8px';
+        restore.onclick = async () => { await apiFetch(`/api/trash/restore?id=${encodeURIComponent(t.id)}`, { method:'POST' }); showTrash(); };
+        const del = document.createElement('button'); del.textContent = '清除'; del.className='secondary';
+        del.onclick = async () => { if(!(await customConfirm('彻底删除将无法恢复，确认？'))) return; await apiFetch(`/api/trash/delete?id=${encodeURIComponent(t.id)}`, { method:'DELETE' }); showTrash(); };
+        opsTd.appendChild(restore); opsTd.appendChild(del);
+        tbody.appendChild(tr);
+      }
+      setHint('当前视图：回收站  |  点击"刷新"恢复文件视图');
+    }
+
+    // 分享
+    async function createShare(path) {
+      // 打开分享设置对话框
+      const modal = document.getElementById('shareModal');
+      const form = document.getElementById('shareForm');
+      document.getElementById('sharePath').value = path;
+      document.getElementById('shareHours').value = '24';
+      document.getElementById('sharePassword').value = '';
+      document.getElementById('shareMaxDownloads').value = '0';
+      modal.style.display = 'block';
+      document.getElementById('shareSubmitBtn').style.display = 'inline-block';
+      document.getElementById('shareSubmitBtn').disabled = false;
+      document.getElementById('shareLinkContainer').style.display = 'none';
+      document.getElementById('shareStatus').textContent = '';
+    }
+    
+    async function handleShareSubmit() {
+      const form = document.getElementById('shareForm');
+      const path = document.getElementById('sharePath').value;
+      const hours = document.getElementById('shareHours').value;
+      const pwd = document.getElementById('sharePassword').value;
+      const max = document.getElementById('shareMaxDownloads').value;
+      
+      try {
+        document.getElementById('shareSubmitBtn').disabled = true;
+        document.getElementById('shareStatus').textContent = '创建中...';
+        
+        const res = await apiFetch('/api/share/create', { 
+          method: 'POST', 
+          headers: {'Content-Type': 'application/json'}, 
+          body: JSON.stringify({ 
+            path, 
+            expireHours: parseInt(hours||'24',10)||24, 
+            password: pwd||'', 
+            maxDownloads: parseInt(max||'0',10)||0 
+          })
+        });
+        
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) { 
+          document.getElementById('shareStatus').textContent = '创建失败: ' + (data.error||res.status);
+          document.getElementById('shareSubmitBtn').disabled = false;
+          return; 
+        }
+        
+        const link = location.origin + '/s/' + data.token + ((pwd && pwd.length > 0) ? `?pwd=${encodeURIComponent(pwd)}` : '');
+        document.getElementById('shareLinkContainer').style.display = 'block';
+        document.getElementById('shareLink').value = link;
+        document.getElementById('shareStatus').textContent = '创建成功！';
+        document.getElementById('shareSubmitBtn').style.display = 'none';
+      } catch (e) {
+        document.getElementById('shareStatus').textContent = '创建失败: ' + (e.message || e);
+        document.getElementById('shareSubmitBtn').disabled = false;
+      }
+    }
+    
+    function copyShareLink() {
+      const linkInput = document.getElementById('shareLink');
+      linkInput.select();
+      document.execCommand('copy');
+      document.getElementById('shareStatus').textContent = '链接已复制到剪贴板';
+    }
+    
+    function closeShareModal() {
+      document.getElementById('shareModal').style.display = 'none';
+      document.getElementById('shareLinkContainer').style.display = 'none';
+      document.getElementById('shareStatus').textContent = '';
+    }
+
+    async function showShares() {
+      currentView = 'shares';
+      setToolbarFor('shares');
+      document.getElementById('hint').textContent = '';
+      const res = await apiFetch('/api/share/list');
+      const list = await res.json().catch(()=>[]);
+      const tbody = document.getElementById('list');
+      tbody.innerHTML = '';
+      if (!Array.isArray(list) || list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6">暂无外链</td></tr>';
+        setHint('当前视图：外链  |  点击"刷新"恢复文件视图');
+        return;
+      }
+      for (const s of list) {
+        const tr = document.createElement('tr');
+        const expireText = s.expireAt > 0 ? new Date(s.expireAt*1000).toLocaleString() : '永久';
+        const disp = toMePath(s.relPath || '');
+        tr.innerHTML = `
+          <td></td>
+          <td class="muted">${disp}</td>
+          <td>${(s.disabled||(s.expireAt>0&&Date.now()/1000> s.expireAt)||(s.maxDownloads>0&&s.downloads>=s.maxDownloads))?'<span class="muted">已失效</span>':'外链'}</td>
+          <td>${s.maxDownloads>0?`下载${s.downloads}/${s.maxDownloads}次`:`下载${s.downloads}次`}</td>
+          <td>${expireText}</td>
+          <td></td>`;
+        const opsTd = tr.querySelector('td:last-child');
+        const invalid = (s.disabled || (s.expireAt>0 && Date.now()/1000 > s.expireAt) || (s.maxDownloads>0 && s.downloads>=s.maxDownloads));
+        const copy = document.createElement('button'); copy.textContent = '复制链接'; copy.className='secondary'; copy.style.marginRight='8px';
+        if(invalid){ copy.disabled = true; }
+        copy.onclick = () => { if(invalid){ return; }
+          const link = location.origin + '/s/' + s.token;
+          navigator.clipboard && navigator.clipboard.writeText(link).then(()=>{
+            alert('链接已复制');
+          }).catch(()=>{
+            prompt('复制以下链接', link);
+          });
+        };
+        const revoke = document.createElement('button'); revoke.textContent = '撤销'; revoke.className='secondary';
+        revoke.onclick = async () => { await apiFetch(`/api/share/revoke?token=${encodeURIComponent(s.token)}`, { method:'DELETE' }); showShares(); };
+        opsTd.appendChild(copy); opsTd.appendChild(revoke);
+        tbody.appendChild(tr);
+      }
+      setHint('当前视图：外链  |  点击"刷新"恢复文件视图');
+    }
+
+    // 注册与登录辅助（美化交互）
+    function togglePwd(){
+      const ipt = document.getElementById('password');
+      const btn = document.querySelector('.pwd-toggle');
+      if(!ipt || !btn) return;
+      const show = ipt.type === 'password';
+      ipt.type = show ? 'text' : 'password';
+      const eye = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+      const eyeOff = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.77 21.77 0 0 1 5.06-5.94"></path><path d="M1 1l22 22"></path><path d="M10.58 10.58a3 3 0 0 0 4.24 4.24"></path><path d="M9.88 3.54A10.94 10.94 0 0 1 21 12"></path></svg>';
+      btn.dataset.showing = show ? 'true' : 'false';
+      btn.setAttribute('aria-label', show ? '隐藏密码' : '显示密码');
+      btn.setAttribute('title', show ? '隐藏密码' : '显示密码');
+      btn.innerHTML = show ? eyeOff : eye;
+      ipt.focus();
+    }
+    function openRegisterModal(){
+      const bd = document.getElementById('registerBackdrop');
+      const md = document.getElementById('registerModal');
+      if(bd){ bd.style.display='block'; bd.onclick = closeRegisterModal; }
+      if(md){ md.style.display='block'; }
+      const u = document.getElementById('regUsername'); if(u){ u.value=''; u.focus(); }
+      const p1 = document.getElementById('regPwd1'); if(p1) p1.value='';
+      const p2 = document.getElementById('regPwd2'); if(p2) p2.value='';
+      const err = document.getElementById('registerError'); if(err) err.textContent='';
+    }
+    function closeRegisterModal(){
+      const bd = document.getElementById('registerBackdrop');
+      const md = document.getElementById('registerModal');
+      if(bd) bd.style.display='none';
+      if(md) md.style.display='none';
+    }
+    async function doRegister(){
+      const err = document.getElementById('registerError'); if(err) err.textContent='';
+      const uEl = document.getElementById('regUsername');
+      const p1El = document.getElementById('regPwd1');
+      const p2El = document.getElementById('regPwd2');
+      const u = (uEl?.value||'').trim();
+      const p1 = p1El?.value||'';
+      const p2 = p2El?.value||'';
+      if(!u){ if(err) err.textContent='请输入用户名'; return; }
+      if(!/^\w{3,32}$/.test(u)){ if(err) err.textContent='用户名需为3-32位字母数字下划线'; return; }
+      if(p1.length<6){ if(err) err.textContent='密码至少6位'; return; }
+      if(p1!==p2){ if(err) err.textContent='两次输入不一致'; return; }
+      try{
+        const res = await fetch('/api/register', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ username:u, password:p1 }) });
+        const data = await res.json().catch(()=>({}));
+        if(!res.ok){ if(err) err.textContent = '注册失败：' + (data.error || res.status); return; }
+        closeRegisterModal();
+        alert('注册成功，等待管理员审核');
+      }catch(e){ if(err) err.textContent = '请求失败：' + (e.message||e); }
+    }
+
+    // 管理员：查看待审核
+    async function showRegistrations(){
+      try{
+        const res = await apiFetch('/api/admin/registrations');
+        const data = await res.json().catch(()=>([]));
+        if (!res.ok) { alert('加载失败：' + (data.error || res.status)); return; }
+        const tbody = document.getElementById('list');
+        currentView = 'registrations';
+        setToolbarFor('users'); // 禁用上传/新建，显示操作列
+        tbody.innerHTML = '';
+        if (!Array.isArray(data) || data.length===0) { tbody.innerHTML = '<tr><td colspan="6">暂无待审核用户</td></tr>'; return; }
+        for (const it of data){
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td></td><td>${it.username}</td><td>用户</td><td>-</td><td>${new Date(it.created*1000).toLocaleString?.() || ''}</td><td></td>`;
+          const ops = tr.children[5];
+          const pass = document.createElement('button'); pass.textContent='通过'; pass.className='secondary'; pass.style.marginRight='8px';
+          pass.onclick = async ()=>{ await adminApprove(it.username); showRegistrations(); };
+          const reject = document.createElement('button'); reject.textContent='拒绝'; reject.className='secondary';
+          reject.onclick = async ()=>{ await adminReject(it.username); showRegistrations(); };
+          ops.appendChild(pass); ops.appendChild(reject);
+          tbody.appendChild(tr);
+        }
+      }catch(e){ alert('请求失败：' + (e.message||e)); }
+    }
+
+    async function showAudit(){
+      try{
+        const res = await apiFetch('/api/audit/list?limit=200');
+        const data = await res.json().catch(()=>([]));
+        if (!res.ok) { alert('加载失败：' + (data.error || res.status)); return; }
+        const tbody = document.getElementById('list');
+        currentView = 'audit';
+        setToolbarFor('users'); // 禁用上传/新建，显示操作列
+        tbody.innerHTML = '';
+        if (!Array.isArray(data) || data.length===0) { tbody.innerHTML = '<tr><td colspan="6">暂无审计记录</td></tr>'; return; }
+        for (const it of data){
+          const tr = document.createElement('tr');
+          const sizeText = it.size>0?formatSize(it.size):'-';
+          tr.innerHTML = `<td></td><td>${it.user}<div class=\"muted\" style=\"font-size:12px;\">${it.target||''}</div></td><td>${it.type||'-'}</td><td>${sizeText}</td><td>${new Date(it.ts*1000).toLocaleString()}</td><td>${it.action}</td>`;
+          tbody.appendChild(tr);
+        }
+      }catch(e){ alert('请求失败：' + (e.message||e)); }
+    }
+
+    async function adminApprove(username){
+      const res = await apiFetch('/api/admin/approve?username=' + encodeURIComponent(username), { method:'POST' });
+      const data = await res.json().catch(()=>({}));
+      if (!res.ok) { alert('操作失败：' + (data.error || res.status)); }
+    }
+    async function adminReject(username){
+      const res = await apiFetch('/api/admin/reject?username=' + encodeURIComponent(username), { method:'POST' });
+      const data = await res.json().catch(()=>({}));
+      if (!res.ok) { alert('操作失败：' + (data.error || res.status)); }
+    }
+
+    // 管理员：用户管理
+    async function showUsers(){
+      try{
+        const res = await apiFetch('/api/admin/users');
+        const data = await res.json().catch(()=>([]));
+        if (!res.ok) { alert('加载失败：' + (data.error || res.status)); return; }
+        const tbody = document.getElementById('list');
+        currentView = 'users';
+        setToolbarFor('users'); // 复用文件视图布局（显示操作列）
+        tbody.innerHTML = '';
+        if (!Array.isArray(data) || data.length===0) { tbody.innerHTML = '<tr><td colspan="6">暂无用户</td></tr>'; return; }
+        for (const it of data){
+          const tr = document.createElement('tr');
+          const status = it.approved? '已启用' : '已禁用';
+          tr.innerHTML = `<td></td><td>${it.username}<div class="muted" style="font-size:12px;">${status}</div></td><td>用户</td><td>-</td><td>${new Date(it.created*1000).toLocaleString?.() || ''}</td><td></td>`;
+          const ops = tr.children[5] || tr.children[4];
+          if (it.approved) {
+            const btnDis = document.createElement('button'); btnDis.textContent='禁用'; btnDis.className='secondary'; btnDis.style.marginRight='8px';
+            btnDis.onclick = async ()=>{ await adminUserDisable(it.username); showUsers(); };
+            ops.appendChild(btnDis);
+          } else {
+            const btnEn = document.createElement('button'); btnEn.textContent='启用'; btnEn.className='secondary'; btnEn.style.marginRight='8px';
+            btnEn.onclick = async ()=>{ await adminUserEnable(it.username); showUsers(); };
+            ops.appendChild(btnEn);
+          }
+          const btnDel = document.createElement('button'); btnDel.textContent='销户'; btnDel.className='secondary';
+          btnDel.onclick = async ()=>{
+            if (!confirm('确定要销户并移除用户所有数据吗？该操作不可撤销')) return;
+            await adminUserDelete(it.username); showUsers();
+          };
+          ops.appendChild(btnDel);
+          tbody.appendChild(tr);
+        }
+      }catch(e){ alert('请求失败：' + (e.message||e)); }
+    }
+    async function adminUserDisable(username){
+      const res = await apiFetch('/api/admin/users/disable?username=' + encodeURIComponent(username), { method:'POST' });
+      const data = await res.json().catch(()=>({}));
+      if (!res.ok) { alert('操作失败：' + (data.error || res.status)); }
+    }
+    async function adminUserEnable(username){
+      const res = await apiFetch('/api/admin/users/enable?username=' + encodeURIComponent(username), { method:'POST' });
+      const data = await res.json().catch(()=>({}));
+      if (!res.ok) { alert('操作失败：' + (data.error || res.status)); }
+    }
+    async function adminUserDelete(username){
+      const res = await apiFetch('/api/admin/users/delete?username=' + encodeURIComponent(username), { method:'POST' });
+      const data = await res.json().catch(()=>({}));
+      if (!res.ok) { alert('操作失败：' + (data.error || res.status)); }
+    }
+
+    // 页面加载时初始化
+    // 搜索
+function resetSearch(){
+  document.getElementById('searchKw').value='';
+  document.getElementById('searchType').value='';
+  document.getElementById('searchOwner').value='';
+  document.getElementById('searchFrom').value='';
+  document.getElementById('searchTo').value='';
+  document.getElementById('pagination').innerHTML='';
+  listFiles();
+}
+async function performSearch(page=1){
+  const kw=document.getElementById('searchKw').value.trim();
+  const type=document.getElementById('searchType').value;
+  const owner=document.getElementById('searchOwner').value.trim();
+  const from=document.getElementById('searchFrom').value;
+  const to=document.getElementById('searchTo').value;
+  const curPath=(document.getElementById('path').value||'').trim();
+  const qs=new URLSearchParams();
+  if(kw) qs.append('kw',kw);
+  if(type) qs.append('type',type);
+  if(owner) qs.append('owner',owner);
+  if(from) qs.append('from',Date.parse(from)/1000);
+  if(to) qs.append('to',Date.parse(to)/1000+86399);
+  if(curPath) qs.append('path',curPath);
+  qs.append('page',page);
+  try{
+    const res=await apiFetch('/api/search?'+qs.toString());
+    const data=await res.json().catch(()=>({items:[]}));
+    if(!res.ok){alert('搜索失败:'+ (data.error||res.status));return;}
+    renderSearchResult(data,kw);
+  }catch(e){alert('搜索失败:'+(e.message||e));}
+}
+function renderSearchResult(data,kw){
+  currentView='files'; // 复用选择逻辑
+  selectedPaths.clear(); refreshBatchButtons();
+  const tbody=document.getElementById('list');
+  tbody.innerHTML='';
+  const re=kw?new RegExp(kw.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'):null;
+  for(const it of data.items){
+    const tr=document.createElement('tr');
+    const nameDisp=re?it.name.replace(re,m=>`<span class=\"highlight\">${m}</span>`):it.name;
+    const pathHtml=`<div class=\"muted\" style=\"font-size:12px;\">${it.relPath}</div>`;
+    tr.innerHTML=`<td></td><td>${nameDisp}${pathHtml}</td><td>${it.isDir?'文件夹':'文件'}</td><td>${it.isDir?'-':formatSize(it.size)}</td><td>${new Date(it.mtime*1000).toLocaleString()}</td><td></td>`;
+    tbody.appendChild(tr);
+  }
+  // 分页
+  const pag=document.getElementById('pagination');
+  const pages=Math.ceil(data.total/data.pageSize)||1;
+  pag.innerHTML='';
+  for(let i=1;i<=pages;i++){
+    const b=document.createElement('button'); b.textContent=i; if(i===data.page) b.disabled=true;
+    b.onclick=()=>performSearch(i); pag.appendChild(b);
+  }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+      if (getToken()) { 
+        showLogin(false); 
+        // 默认进入“我的空间”
+        document.getElementById('path').value = '@me';
+        listFiles(); 
+      } else { 
+        showLogin(true); 
+      }
+      try{ setupContextMenu(); }catch(_){}
+      try{ setupDragSelect(); }catch(_){}
+    });
+  </script>
+
+  <script>
+    const uppy = new Uppy.Uppy({ debug: true, locale: Uppy.locales.zh_CN });
+  </script>  
+
+  <script>
+    // 使用弹窗 Dashboard，并通过 uploadBtn 触发（使用全局 Uppy 对象，避免 ESM/全局混用导致版本不一致）
+    uppy.use(Uppy.Dashboard, {
+      trigger: '#uploadBtn',
+      closeModalOnClickOutside: false,
+      closeAfterFinish: false,
+      proudlyDisplayPoweredByUppy: false,
+      showDoneButton: true
+    });
+    // 通过后端接口上传文件
+    uppy.use(Uppy.XHRUpload, {
+      endpoint: '/api/upload',
+      fieldName: 'file',
+      formData: true,
+      headers: () => {
+        const tok = getToken();
+        return tok ? { 'Authorization': 'Bearer ' + tok } : {};
+      }
+    });
+    // 当前路径（默认为 @me）
+    function currentUploadPath() {
+      let p = (document.getElementById('path').value || '').replace(/^\/+/, '').replace(/\/+$/, '');
+      return p; // 若为空则上传到根目录
+    }
+    function updateUploadEndpoint() {
+      const upload = uppy.getPlugin('XHRUpload');
+      if (upload) upload.setOptions({ endpoint: `/api/upload?path=${encodeURIComponent(currentUploadPath())}` });
+    }
+    // 打开弹窗/开始上传时，更新上传目标路径
+    uppy.on('dashboard:modal-open', updateUploadEndpoint);
+    uppy.on('dashboard:open-modal', updateUploadEndpoint);
+    uppy.on('upload', updateUploadEndpoint);
+    // 完成后刷新列表（不自动关闭弹窗）
+    uppy.on('complete', () => { listFiles(); });
+  </script>
+  <style>
+    .modal-overlay{position:fixed;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:12000;}
+    .modal-box{background:#fff;border-radius:8px;min-width:300px;max-width:80%;padding:24px;box-shadow:0 6px 20px rgba(0,0,0,.2);}
+    .modal-box h3{margin:0 0 12px;font-size:18px;}
+    .modal-box input{width:100%;padding:6px 8px;font-size:14px;box-sizing:border-box;margin-top:8px;}
+    .modal-actions{text-align:right;margin-top:18px;}
+    .modal-actions button{margin-left:8px;}
+    .hidden{display:none;}
+  </style>
+  <div id="modalOverlay" class="modal-overlay hidden">
+    <div class="modal-box" id="modalBox"></div>
+  </div>
+  <script>
+    // 简易自定义弹窗，返回 Promise 兼容 async/await
+    function showModal(type,msg,def){return new Promise(res=>{
+      const ov=document.getElementById('modalOverlay');const box=document.getElementById('modalBox');
+      box.innerHTML='';const title=document.createElement('h3');title.textContent=msg;box.appendChild(title);
+      let inp=null;if(type==='prompt'){inp=document.createElement('input');inp.value=def||'';box.appendChild(inp);} 
+      const acts=document.createElement('div');acts.className='modal-actions';box.appendChild(acts);
+      const ok=document.createElement('button');ok.textContent='确定';ok.className='primary';acts.appendChild(ok);
+      let cancel=null;if(type!=='alert'){cancel=document.createElement('button');cancel.textContent='取消';acts.appendChild(cancel);} 
+      function close(v){ov.classList.add('hidden');res(v);} ov.classList.remove('hidden');if(inp) inp.focus();
+      ok.onclick=()=>close(type==='prompt'?inp.value:true);
+      if(cancel) cancel.onclick=()=>close(type==='prompt'?null:false);
+    });}
+    window.customAlert=msg=>showModal('alert',msg);
+    window.customConfirm=msg=>showModal('confirm',msg);
+    window.customPrompt=(msg,def)=>showModal('prompt',msg,def);
+
+// 目录选择弹窗（点击导航 / 双击进入 / 选中高亮）
+async function selectDirectory(initialPath){
+  return new Promise(async (resolve)=>{
+    const overlay=document.createElement('div');
+    overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:10000;';
+    const panel=document.createElement('div');
+    panel.style.cssText='width:500px;max-height:80vh;background:#fff;border-radius:8px;padding:18px 22px;display:flex;flex-direction:column;overflow:hidden;';
+    const title=document.createElement('h3');title.textContent='选择目标文件夹';title.style.margin='0 0 12px';panel.appendChild(title);
+    const list=document.createElement('div');list.style.cssText='flex:1;overflow:auto;border:1px solid #ddd;border-radius:4px;padding:6px;';panel.appendChild(list);
+    const footer=document.createElement('div');footer.style.cssText='margin-top:14px;text-align:right;';
+    const ok=document.createElement('button');ok.textContent='确定';ok.className='primary';ok.disabled=true;
+    const cancel=document.createElement('button');cancel.textContent='取消';cancel.className='secondary';cancel.style.marginLeft='8px';
+    footer.appendChild(ok);footer.appendChild(cancel);panel.appendChild(footer);overlay.appendChild(panel);document.body.appendChild(overlay);
+
+    let selected='';
+    async function load(p){
+      list.innerHTML='加载中...';
+      try{
+        const res=await apiFetch(`/api/files?path=${encodeURIComponent(p)}`);
+        if(!res.ok){let msg='';try{const d=await res.json();msg=d&&d.error;}catch(_){}list.textContent='加载失败：'+(msg||res.status);return;}
+        let data = await res.json().catch(()=>[]);
+        if (data == null) {
+          data = [];
+        }
+        if (!Array.isArray(data)) {
+          if (data && Array.isArray(data.items)) {
+            data = data.items; // 兼容 {items:[]} 结构
+          } else if (data && data.items === null) {
+            data = [];
+          } else {
+            list.textContent = '加载失败：返回数据格式错误 ' + JSON.stringify(data);
+            return;
+          }
+        }
+        list.innerHTML='';
+        const bc=document.createElement('div');
+        bc.innerHTML = '当前位置：<span class="muted">公共空间' + (p ? ('/' + p) : '') + '</span>';
+        bc.style.cssText = 'margin-bottom:6px;font-size:14px;color:#555;';list.appendChild(bc);
+        if (p) {
+          const up = document.createElement('div');
+          const parentPath = p.replace(/\\/g, '/').replace(/\/+$|^\/+/, '');
+          const isMeRoot = (p === '@me' || p === '@me/');
+          const label = isMeRoot ? '[公共目录]' : '[..] 上级目录';
+          up.textContent = label;
+          up.style.cssText = 'padding:4px 6px;cursor:pointer;color:#06f;';
+          up.onclick = () => {
+            const parent = p.replace(/\\/g, '/').replace(/\/+$/, '');
+            const idx = parent.lastIndexOf('/');
+            load(idx >= 0 ? parent.slice(0, idx) : '');
+          };
+          list.appendChild(up);
+        } else {
+          // 根目录额外入口：我的空间
+          const me = document.createElement('div');
+          me.textContent = '[我的空间]';
+          me.style.cssText = 'padding:4px 6px;cursor:pointer;color:#06f;';
+          me.onclick = () => load('@me');
+          list.appendChild(me);
+        }
+        for (const f of data) {if(!f.isDir)continue;const row = document.createElement('div');
+            const icon = document.createElement('i');
+            icon.className = fileIconClass(f.name || '', true); // 与主列表保持一致的文件夹图标
+            icon.style.marginRight = '6px';
+            row.appendChild(icon);
+            row.appendChild(document.createTextNode(f.name));
+            row.style.cssText = 'padding:4px 6px;cursor:pointer;border-radius:4px;display:flex;align-items:center;';
+            row.onclick = () => { load((p ? (p + '/') : '') + f.name); };list.appendChild(row);}selected=p;ok.disabled=false;
+      }catch(e){list.textContent='加载失败：'+(e?.message||e);}
+    }
+    await load(initialPath||'');
+    function close(v){overlay.remove();resolve(v);}cancel.onclick=()=>close(null);ok.onclick=()=>close(selected);
+  });
+}
+      // 覆写浏览器 alert 为自定义弹窗（不阻塞线程）
+      window.alert=msg=>{ showModal('alert',msg); };
+  </script>
+</body>
+</html>

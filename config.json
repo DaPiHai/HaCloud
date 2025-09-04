@@ -1,0 +1,29 @@
+{
+  "server": {
+    "port": "8080",
+    "host": "localhost",
+    "certFile": "",
+    "keyFile": "",
+    "autoTLS": false,
+    "acmeEmail": ""
+  },
+  "admin": {
+    "username": "admin",
+    "password": "admin123",
+    "comment": "默认管理员账号（用户名固定为 admin），密码仅在首次初始化生效"
+  },
+  "jwt": {
+    "expiryHours": 24,
+    "comment": "JWT Token 有效期（小时）"
+  },
+  "storage": {
+    "root": "data/storage",
+    "comment": "文件存储根目录，相对于 backend 目录"
+  },
+  "features": {
+    "autoCleanTrash": true,
+    "trashRetentionDays": 30,
+    "maxUploadSize": "100MB",
+    "comment": "功能开关和限制配置"
+  }
+}
